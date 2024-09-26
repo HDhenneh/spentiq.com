@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Payslip - Sleek & Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Modern card design */
+        .payslip-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 250px;
+            margin-right: 20px;
+            position: relative;
+        }
+
+        .payslip-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .scrollable-container {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            padding-bottom: 20px;
+        }
+
+        /* Styling scrollbar for modern look */
+        .scrollable-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .month-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .payslip-card {
+                min-width: 90%;
+            }
+        }
+
+        /* Header and button */
+        button {
+            padding: 10px 20px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="text-center py-8 text-3xl font-bold">Shadow Payslips - 2024</header>
+
+    <main class="max-w-6xl mx-auto px-4">
+        <!-- Group by month -->
+        <section class="mb-10">
+            <h2 class="month-label">January</h2>
+            <div class="scrollable-container">
+                <!-- Card 1 -->
+                <div class="payslip-card">
+                    <h3 class="text-xl mb-4">Week 1</h3>
+                    <p><strong>Employee:</strong> John Doe</p>
+                    <p><strong>Pay Date:</strong> 5th Jan</p>
+                    <p><strong>Gross Pay:</strong> £672.00</p>
+                    <p><strong>Tax:</strong> £150.00</p>
+                    <p><strong>National Insurance:</strong> £70.00</p>
+                    <p><strong>Net Pay:</strong> £452.00</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="payslip-card">
+                    <h3 class="text-xl mb-4">Week 2</h3>
+                    <p><strong>Employee:</strong> John Doe</p>
+                    <p><strong>Pay Date:</strong> 12th Jan</p>
+                    <p><strong>Gross Pay:</strong> £672.00</p>
+                    <p><strong>Tax:</strong> £150.00</p>
+                    <p><strong>National Insurance:</strong> £70.00</p>
+                    <p><strong>Net Pay:</strong> £452.00</p>
+                </div>
+                <!-- Add more cards similarly for the entire year -->
+            </div>
+        </section>
+
+        <!-- February Section (Repeat for each month) -->
+        <section class="mb-10">
+            <h2 class="month-label">February</h2>
+            <div class="scrollable-container">
+                <!-- Add cards for February -->
+                <div class="payslip-card">
+                    <h3 class="text-xl mb-4">Week 5</h3>
+                    <p><strong>Employee:</strong> John Doe</p>
+                    <p><strong>Pay Date:</strong> 2nd Feb</p>
+                    <p><strong>Gross Pay:</strong> £672.00</p>
+                    <p><strong>Tax:</strong> £150.00</p>
+                    <p><strong>National Insurance:</strong> £70.00</p>
+                    <p><strong>Net Pay:</strong> £452.00</p>
+                </div>
+                <!-- Add more cards similarly -->
+            </div>
+        </section>
+
+        <!-- Button to scroll back to the top -->
+        <div class="text-center">
+            <button onclick="scrollToTop()">Back to Top</button>
+        </div>
+    </main>
+
+    <script>
+        // Scroll to top button functionality
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

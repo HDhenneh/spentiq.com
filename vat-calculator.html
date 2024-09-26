@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAT Calculator - SpentIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .chart-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .nav-link {
+            color: #fff;
+            text-decoration: underline;
+            margin-right: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header class="text-center py-8 text-3xl font-bold">VAT Calculator</header>
+
+    <nav class="text-center mb-4">
+        <a href="index.html" class="nav-link">Back to Home</a>
+        <a href="shadow-payslip.html" class="nav-link">Shadow Payslip</a>
+    </nav>
+
+    <main class="max-w-4xl mx-auto">
+        <section class="card">
+            <h2 class="text-2xl mb-4">VAT Calculator with Visual Feedback</h2>
+            <p><strong>What is VAT?</strong> VAT (Value Added Tax) is a tax on goods and services. This calculator helps you find how much VAT you're paying and what the net value of your purchases is.</p>
+        </section>
+
+        <!-- Sliders, Chart, and Results -->
+        <section class="flex flex-col md:flex-row justify-between items-center p-6 space-y-6 md:space-y-0 md:space-x-6">
+            <!-- Sliders -->
+            <div class="card flex-1">
+                <label for="gross-value">Gross Value:</label>
+                <input type="range" id="gross-value" class="w-full" min="0" max="1000" value="500">
+                <span id="gross-value-display">£500.00</span>
+            </div>
+            <div class="card flex-1">
+                <label for="vat-rate">VAT Rate:</label>
+                <input type="range" id="vat-rate" class="w-full" min="0" max="30" value="20">
+                <span id="vat-rate-display">20%</span>
+            </div>
+        </section>
+
+        <section class="card chart-container">
+            <canvas id="vat-chart"></canvas>
+        </section>
+
+        <section class="card text-center">
+            <h3 class="text-xl">Calculated Results</h3>
+            <p>VAT Amount: <span id="vat-amount">£X.XX</span></p>
+            <p>Net Value: <span id="net-value">£X.XX</span></p>
+        </section>
+
+        <!-- Reset Button -->
+        <section class="text-center mt-6">
+            <button id="reset-btn">Reset Values</button>
+        </section>
+    </main>
+
+    <script>
+        // Elements
+        const grossValueSlider = document.getElementById('gross-value');
+        const vatRateSlider = document.getElementById('vat-rate');
+        const grossValueDisplay = document.getElementById('gross-value-display');
+        const vatRateDisplay = document.getElementById('vat-rate-display');
+        const vatAmountDisplay = document.getElementById('vat-amount');
+        const netValueDisplay = document.getElementById('net-value');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Update function
+        function updateValues() {
+            const grossValue = parseFloat(grossValueSlider.value);
+            const vatRate = parseFloat(vatRateSlider.value);
+            const vatAmount = grossValue * (vatRate / 100);
+            const netValue = grossValue - vatAmount;
+
+            grossValueDisplay.textContent = `£${grossValue.toFixed(2)}`;
+            vatRateDisplay.textContent = `${vatRate}%`;
+            vatAmountDisplay.textContent = `£${vatAmount.toFixed(2)}`;
+            netValueDisplay.textContent = `£${netValue.toFixed(2)}`;
+
+            // Update chart
+            updateChart(vatAmount, netValue);
+        }
+
+        // Reset button functionality
+        resetBtn.addEventListener('click', () => {
+            grossValueSlider.value = 500;
+            vatRateSlider.value = 20;
+            updateValues();
+        });
+
+        // Chart.js setup
+        const ctx = document.getElementById('vat-chart').getContext('2d');
+        let vatChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['VAT Amount', 'Net Value'],
+                datasets: [{
+                    data: [100, 400],
+                    backgroundColor: ['#ff6384', '#36a2eb'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true },
+                }
+            }
+        });
+
+        // Update chart with new data
+        function updateChart(vatAmount, netValue) {
+            vatChart.data.datasets[0].data = [vatAmount, netValue];
+            vatChart.update();
+        }
+
+        // Initial update to populate values and chart
+        updateValues();
+
+        // Event listeners to update values on slider input
+        grossValueSlider.addEventListener('input', updateValues);
+        vatRateSlider.addEventListener('input', updateValues);
+    </script>
+</body>
+</html>
