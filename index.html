@@ -1,66 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shadow Payslip</title>
-<style>
-  body {
-    font-family: sans-serif;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-  table, th, td {
-    border: 1px solid black;
-    padding: 5px;
-  }
-  th {
-    text-align: left;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpentIQ - Visualizing Everyday Math</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .nav-link {
+            margin-right: 15px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            text-decoration: none;
+            color: #fff;
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Shadow Payslip</h1>
-  <p>**Pay Date:** [Insert Pay Date Here (calculated based on Friday from 12th April)]</p>
-  <p>**Tax Year:** 2024-2025</p>
-  <table id="payslip">
-    <tbody>
-      <tr>
-        <th>Employee</th>
-        <td>[Insert Employee Name Here]</td>
-      </tr>
-      <tr>
-        <th>National Insurance Number</th>
-        <td>[Insert National Insurance Number Here]</td>
-      </tr>
-      <tr>
-        <th>Tax Code</th>
-        <td>1257L</td>
-      </tr>
-      <tr>
-        <th>National Insurance Letter</th>
-        <td>A</td>
-      </tr>
-      <tr>
-        <th>Gross Pay</th>
-        <td>£[Insert Gross Pay Here (calculated based on £672/week)]</td>
-      </tr>
-      <tr>
-        <th>Tax</th>
-        <td>£[Insert Tax Deduction Here (calculated based on gross pay and tax code)]</td>
-      </tr>
-      <tr>
-        <th>National Insurance</th>
-        <td>£[Insert National Insurance Deduction Here (calculated based on gross pay and NI letter)]</td>
-      </tr>
-      <tr>
-        <th>Net Pay</th>
-        <td>£[Insert Net Pay Here (gross pay - tax - National Insurance)]</td>
-      </tr>
-    </tbody>
-  </table>
-  <p>**Please note:** This is a simulated payslip and may not reflect actual tax deductions.</p>
+    <header class="py-8 text-center text-3xl font-bold">Welcome to SpentIQ</header>
+
+    <div class="main-container">
+        <p>Explore our tools for visualizing complex calculations in everyday life.</p>
+        <nav class="my-6">
+            <a href="vat-calculator.html" class="nav-link">VAT Calculator</a>
+            <a href="shadow-payslip.html" class="nav-link">Shadow Payslip</a>
+        </nav>
+    </div>
 </body>
 </html>
