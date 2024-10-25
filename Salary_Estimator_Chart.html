@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Estimator with Tax and NI Breakdown</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #1a1a1d, #2d2d34);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            position: relative;
+        }
+
+        .details {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+            margin-top: 10px;
+        }
+
+        .dashboard-card:hover .details {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slider-container {
+            margin-top: 20px;
+        }
+
+        .salary-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .drilldown-details {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .tax-drilldown:hover .drilldown-details,
+        .ni-drilldown:hover .drilldown-details {
+            display: block;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+
+    <header class="text-center py-8 text-3xl font-bold">Salary Estimator with Tax and NI Breakdown</header>
+
+    <main class="max-w-6xl mx-auto px-4">
+        <!-- Income Summary Card with Hover -->
+        <div class="dashboard-card">
+            <div class="dashboard-header">
+                Income Summary - <span id="salaryDisplay">£40,000</span>
+            </div>
+            <div class="details">
+                <p><strong>Gross Income:</strong> <span id="grossIncome">£40,000</span></p>
+                <p><strong>Estimated Tax Deducted:</strong> <span id="taxDeducted">£7,540</span></p>
+                <p><strong>National Insurance:</strong> <span id="niDeducted">£3,180</span></p>
+                <p><strong>Net Income:</strong> <span id="netIncome">£29,280</span></p>
+            </div>
+
+            <!-- Income Breakdown Donut Chart -->
+            <div class="chart-container">
+                <canvas id="incomeChart"></canvas>
+            </div>
+
+            <!-- Slider to adjust salary -->
+            <div class="slider-container">
+                <label for="salaryRange" class="salary-label">Adjust Salary: <span id="salaryValue">£40,000</span></label>
+                <input type="range" id="salaryRange" min="0" max="300000" value="40000" step="1000" class="w-full mt-2">
+            </div>
+        </div>
+
+        <!-- Tax and NI Breakdown Cards -->
+        <div class="cards-container">
+            <!-- Tax Breakdown with Drilldown -->
+            <div class="dashboard-card tax-drilldown">
+                <div class="dashboard-header">Tax Breakdown</div>
+                <div class="chart-container">
+                    <canvas id="taxBreakdownChart"></canvas>
+                </div>
+
+                <div class="drilldown-details">
+                    <p><strong>Personal Allowance (0%)</strong> applied to the first £12,570</p>
+                    <p><strong>Basic Rate (20%)</strong> on income up to £50,270</p>
+                    <p><strong>Higher Rate (40%)</strong> beyond £50,270</p>
+                    <p><strong>Additional Rate (45%)</strong> above £150,000</p>
+                </div>
+            </div>
+
+            <!-- National Insurance Breakdown with Drilldown -->
+            <div class="dashboard-card ni-drilldown">
+                <div class="dashboard-header">National Insurance Breakdown</div>
+                <div class="chart-container">
+                    <canvas id="niBreakdownChart"></canvas>
+                </div>
+
+                <div class="drilldown-details">
+                    <p><strong>Below Primary Threshold (0%)</strong> applied up to £9,568</p>
+                    <p><strong>Between PT and UEL (12%)</strong> applied between £9,568 and £50,270</p>
+                    <p><strong>Above UEL (2%)</strong> applied above £50,270</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const salarySlider = document.getElementById('salaryRange');
+        const salaryDisplay = document.getElementById('salaryValue');
+        const salaryText = document.getElementById('salaryDisplay');
+        const grossIncome = document.getElementById('grossIncome');
+        const taxDeducted = document.getElementById('taxDeducted');
+        const niDeducted = document.getElementById('niDeducted');
+        const netIncome = document.getElementById('netIncome');
+
+        // Helper function to format numbers
+        function formatCurrency(value) {
+            return `£${value.toLocaleString()}`;
+        }
+
+        // Calculate tax based on salary
+        function calculateTax(salary) {
+            let personalAllowance = 12570;
+            let basicRateThreshold = 50270;
+            let higherRateThreshold = 150000;
+            let tax = 0;
+
+            if (salary > 100000) {
+                personalAllowance -= (salary - 100000) / 2;
+                if (personalAllowance < 0) personalAllowance = 0;
+            }
+
+            let taxableIncome = salary - personalAllowance;
+            
+            if (taxableIncome > 0) {
+                if (taxableIncome <= basicRateThreshold) {
+                    tax += taxableIncome * 0.2;
+                } else {
+                    tax += (basicRateThreshold - personalAllowance) * 0.2;
+
+                    if (taxableIncome <= higherRateThreshold) {
+                        tax += (taxableIncome - basicRateThreshold) * 0.4;
+                    } else {
+                        tax += (higherRateThreshold - basicRateThreshold) * 0.4;
+
+                        if (taxableIncome > higherRateThreshold) {
+                            tax += (taxableIncome - higherRateThreshold) * 0.45;
+                        }
+                    }
+                }
+            }
+
+            return tax;
+        }
+
+        // Update salary-related values dynamically
+        function updateSalaryValues(salary) {
+            let ni = (salary > 9500) ? (salary - 9500) * 0.12 : 0;
+            let tax = calculateTax(salary);
+            let net = salary - tax - ni;
+
+            salaryText.textContent = formatCurrency(salary);
+            grossIncome.textContent = formatCurrency(salary);
+            taxDeducted.textContent = formatCurrency(tax);
+            niDeducted.textContent = formatCurrency(ni);
+            netIncome.textContent = formatCurrency(net);
+
+            // Update charts dynamically
+            incomeChart.data.datasets[0].data = [tax, ni, net];
+            incomeChart.update();
+
+            updateTaxBreakdownChart(salary);
+            updateNIBreakdownChart(salary);
+        }
+
+        function getTaxSegments(salary) {
+            let personalAllowance = 12570;
+            let basicRateThreshold = 50270;
+            let higherRateThreshold = 150000;
+
+            if (salary > 100000) {
+                personalAllowance -= (salary - 100000) / 2;
+                if (personalAllowance < 0) personalAllowance = 0;
+            }
+
+            const segments = [];
+
+            if (personalAllowance > 0) {
+                segments.push({
+                    label: `Personal Allowance: £${personalAllowance} at 0% (0 Tax)`,
+                    value: personalAllowance,
+                    tax: 0
+                });
+            }
+
+            let taxableIncome = salary - personalAllowance;
+
+            if (taxableIncome > 0) {
+                const basicRateIncome = Math.min(taxableIncome, basicRateThreshold - personalAllowance);
+                segments.push({
+                    label: `Basic Rate: £${basicRateIncome} at 20% (£${(basicRateIncome * 0.2).toFixed(2)})`,
+                    value: basicRateIncome,
+                    tax: basicRateIncome * 0.2
+                });
+            }
+
+            if (taxableIncome > basicRateThreshold) {
+                const higherRateIncome = Math.min(taxableIncome - basicRateThreshold, higherRateThreshold - basicRateThreshold);
+                segments.push({
+                    label: `Higher Rate: £${higherRateIncome} at 40% (£${(higherRateIncome * 0.4).toFixed(2)})`,
+                    value: higherRateIncome,
+                    tax: higherRateIncome * 0.4
+                });
+            }
+
+            if (taxableIncome > higherRateThreshold) {
+                const additionalRateIncome = taxableIncome - higherRateThreshold;
+                segments.push({
+                    label: `Additional Rate: £${additionalRateIncome} at 45% (£${(additionalRateIncome * 0.45).toFixed(2)})`,
+                    value: additionalRateIncome,
+                    tax: additionalRateIncome * 0.45
+                });
+            }
+
+            return segments;
+        }
+
+        function updateTaxBreakdownChart(salary) {
+            const taxSegments = getTaxSegments(salary);
+            
+            const dataValues = taxSegments.map(segment => segment.value);
+            const dataLabels = taxSegments.map(segment => segment.label);
+            const backgroundColors = ['#4caf50', '#2196f3', '#ffeb3b', '#f44336'];
+
+            taxBreakdownChart.data.datasets[0].data = dataValues;
+            taxBreakdownChart.data.labels = dataLabels;
+            taxBreakdownChart.data.datasets[0].backgroundColor = backgroundColors.slice(0, dataValues.length);
+            taxBreakdownChart.update();
+        }
+
+        function getNISegments(salary) {
+            const primaryThreshold = 9568;
+            const upperEarningsLimit = 50270;
+
+            const segments = [];
+
+            if (salary <= primaryThreshold) {
+                segments.push({
+                    label: `Below Primary Threshold: £${salary} at 0% (No NI)`,
+                    value: salary,
+                    ni: 0
+                });
+            } else {
+                segments.push({
+                    label: `Below Primary Threshold: £${primaryThreshold} at 0%`,
+                    value: primaryThreshold,
+                    ni: 0
+                });
+
+                if (salary <= upperEarningsLimit) {
+                    const ptToUel = salary - primaryThreshold;
+                    segments.push({
+                        label: `PT to UEL: £${ptToUel} at 12% (£${(ptToUel * 0.12).toFixed(2)})`,
+                        value: ptToUel,
+                        ni: ptToUel * 0.12
+                    });
+                } else {
+                    const ptToUel = upperEarningsLimit - primaryThreshold;
+                    segments.push({
+                        label: `PT to UEL: £${ptToUel} at 12% (£${(ptToUel * 0.12).toFixed(2)})`,
+                        value: ptToUel,
+                        ni: ptToUel * 0.12
+                    });
+
+                    const aboveUel = salary - upperEarningsLimit;
+                    segments.push({
+                        label: `Above UEL: £${aboveUel} at 2% (£${(aboveUel * 0.02).toFixed(2)})`,
+                        value: aboveUel,
+                        ni: aboveUel * 0.02
+                    });
+                }
+            }
+
+            return segments;
+        }
+
+        function updateNIBreakdownChart(salary) {
+            const niSegments = getNISegments(salary);
+
+            const dataValues = niSegments.map(segment => segment.value);
+            const dataLabels = niSegments.map(segment => segment.label);
+            const backgroundColors = ['#4caf50', '#f44336', '#ffeb3b'];
+
+            niBreakdownChart.data.datasets[0].data = dataValues;
+            niBreakdownChart.data.labels = dataLabels;
+            niBreakdownChart.data.datasets[0].backgroundColor = backgroundColors.slice(0, dataValues.length);
+            niBreakdownChart.update();
+        }
+
+        // Chart.js Initialization
+        const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+        const incomeChart = new Chart(incomeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Tax', 'National Insurance', 'Net Income'],
+                datasets: [{
+                    data: [7540, 3180, 29280],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#4caf50'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                }
+            }
+        });
+
+        // Tax Breakdown Chart
+        const taxCtx = document.getElementById('taxBreakdownChart').getContext('2d');
+        const taxBreakdownChart = new Chart(taxCtx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                }
+            }
+        });
+
+        // National Insurance Breakdown Chart
+        const niCtx = document.getElementById('niBreakdownChart').getContext('2d');
+        const niBreakdownChart = new Chart(niCtx, {
+            type: 'pie',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                }
+            }
+        });
+
+        salarySlider.addEventListener('input', function () {
+            const salary = parseInt(salarySlider.value);
+            salaryDisplay.textContent = formatCurrency(salary);
+            updateSalaryValues(salary);
+        });
+
+        // Initial values update
+        updateSalaryValues(40000);
+    </script>
+</body>
+</html>

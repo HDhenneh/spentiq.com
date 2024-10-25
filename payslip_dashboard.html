@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslip Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Card */
+        .dashboard-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-details {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+            margin-top: 10px;
+        }
+
+        .dashboard-card:hover .dashboard-details {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Chart container */
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+        }
+
+        .back-button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+
+    <header class="text-center py-8 text-3xl font-bold">UK PAYE Payslip Dashboard</header>
+
+    <main class="max-w-4xl mx-auto px-4">
+        <!-- Dashboard Card: Payslip Overview -->
+        <div class="dashboard-card">
+            <div class="dashboard-header">
+                Payslip - Week 1 (Jan 5, 2024)
+            </div>
+            <div class="dashboard-details">
+                <p><strong>Gross Pay:</strong> £672.00</p>
+                <p><strong>Tax Deducted:</strong> £150.00</p>
+                <p><strong>National Insurance:</strong> £70.00</p>
+                <p><strong>Net Pay:</strong> £452.00</p>
+            </div>
+
+            <!-- Chart for Tax Breakdown -->
+            <div class="chart-container">
+                <canvas id="taxChart"></canvas>
+            </div>
+        </div>
+
+        <!-- More Payslip Cards for each week -->
+
+    </main>
+
+    <script>
+        // Sample Chart.js for tax breakdown
+        const ctx = document.getElementById('taxChart').getContext('2d');
+        const taxChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Tax', 'NI', 'Net Pay'],
+                datasets: [{
+                    data: [150, 70, 452],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#4caf50'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                }
+            }
+        });
+    </script>
+</body>
+</html>

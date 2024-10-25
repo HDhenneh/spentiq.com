@@ -65,6 +65,7 @@
         <section class="card">
             <h2 class="text-2xl mb-4">VAT Calculator with Visual Feedback</h2>
             <p><strong>What is VAT?</strong> VAT (Value Added Tax) is a tax on goods and services. This calculator helps you find how much VAT you're paying and what the net value of your purchases is.</p>
+            <p id="random-fact" class="mt-4 font-bold"></p>
         </section>
 
         <!-- Sliders, Chart, and Results -->
@@ -82,10 +83,12 @@
             </div>
         </section>
 
+        <!-- Chart -->
         <section class="card chart-container">
             <canvas id="vat-chart"></canvas>
         </section>
 
+        <!-- Results -->
         <section class="card text-center">
             <h3 class="text-xl">Calculated Results</h3>
             <p>VAT Amount: <span id="vat-amount">£X.XX</span></p>
@@ -99,6 +102,17 @@
     </main>
 
     <script>
+        // Random VAT facts
+        const randomFacts = [
+            "In the UK, the standard VAT rate is 20%, but some goods and services are charged at 5%.",
+            "VAT was introduced in the UK in 1973 when the country joined the European Economic Community.",
+            "Some countries charge VAT rates as high as 27%, as in Hungary.",
+            "Certain goods like children's clothing and most food items are zero-rated in the UK."
+        ];
+
+        // Display a random fact
+        document.getElementById("random-fact").textContent = `Random VAT Fact: ${randomFacts[Math.floor(Math.random() * randomFacts.length)]}`;
+
         // Elements
         const grossValueSlider = document.getElementById('gross-value');
         const vatRateSlider = document.getElementById('vat-rate');
