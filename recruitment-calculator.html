@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Rate Calculator - SpentIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .nav-link {
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .card {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Calculator-specific styling */
+        .calculator-container {
+            perspective: 1000px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .flip-card {
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            min-height: 600px;
+        }
+        
+        .flip-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .card-front {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-back {
+            background-color: rgba(30, 58, 138, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: rotateY(180deg);
+        }
+        
+        input[type="number"] {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            padding: 0.5rem 1rem;
+            width: 100%;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #60a5fa;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .opt-out-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .opt-out-btn.active {
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+        
+        .results-group {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .results-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .results-body {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.5rem;
+            display: none;
+        }
+        
+        .results-body.active {
+            display: block;
+        }
+        
+        .opted-out-badge {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <a href="index.html" class="flex items-center mb-4 md:mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    <h1 class="text-3xl font-bold">SpentIQ</h1>
+                </a>
+                
+                <nav class="flex flex-wrap gap-3">
+                    <a href="index.html#calculators" class="nav-link">All Calculators</a>
+                    <a href="index.html#about" class="nav-link">About</a>
+                    <a href="index.html#contact" class="nav-link">Contact</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-12">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mb-3">UK Model</span>
+                <h2 class="text-4xl font-bold mb-4">Recruitment Rate Calculator</h2>
+                <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                    Calculate employer costs, rolled-up rates, and bill rates for UK recruitment professionals.
+                    Accurately determine your margins and pricing strategy.
+                </p>
+            </div>
+            
+            <div class="calculator-container">
+                <div class="flip-card" id="flipCard">
+                    <!-- Calculator Front (Settings) -->
+                    <div class="card-face card-front">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-semibold">Calculator Settings</h3>
+                            <button id="flipToResults" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center">
+                                <span>View Results</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m12 5 7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <div class="mb-6">
+                                    <label class="block mb-2">Basic Pay Rate (£ per hour)</label>
+                                    <input type="number" id="basicPay" class="block w-full" min="0" step="0.01">
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-2">
+                                        <label>Holiday Entitlement (days)</label>
+                                        <span id="holidayDaysValue">28</span>
+                                    </div>
+                                    <input type="range" id="holidayDays" min="20" max="40" value="28" class="block w-full">
+                                    <div class="flex justify-between text-xs text-blue-200 mt-1">
+                                        <span>20 days</span>
+                                        <span>30 days</span>
+                                        <span>40 days</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-2">
+                                        <label>Employer NI (%)</label>
+                                        <span id="employerNIValue">15</span>
+                                    </div>
+                                    <input type="range" id="employerNI" min="0" max="30" value="15" class="block w-full">
+                                    <div class="flex justify-between text-xs text-blue-200 mt-1">
+                                        <span>0%</span>
+                                        <span>15%</span>
+                                        <span>30%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-2">
+                                        <label>Employer Pension (%)</label>
+                                        <span id="employerPensionValue">3</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" id="employerPension" min="3" max="15" value="3" class="block w-full" disabled>
+                                        <button id="pensionOptOut" class="opt-out-btn">Opt-Out</button>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-blue-200 mt-1">
+                                        <span>3%</span>
+                                        <span>9%</span>
+                                        <span>15%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-2">
+                                        <label>Apprenticeship Levy (%)</label>
+                                        <span id="appLevyValue">0.5</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="range" id="appLevy" min="0" max="2" value="0.5" step="0.1" class="block w-full" disabled>
+                                        <button id="levyOptOut" class="opt-out-btn">Opt-Out</button>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-blue-200 mt-1">
+                                        <span>0%</span>
+                                        <span>1%</span>
+                                        <span>2%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-2">
+                                        <label>Margin (%)</label>
+                                        <span id="markupValue">5</span>
+                                    </div>
+                                    <input type="range" id="markup" min="0" max="25" value="5" step="0.5" class="block w-full">
+                                    <div class="flex justify-between text-xs text-blue-200 mt-1">
+                                        <span>0%</span>
+                                        <span>12.5%</span>
+                                        <span>25%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <div class="bg-blue-900/30 p-4 rounded-lg mb-4">
+                                <h4 class="font-medium mb-2">Calculator Information</h4>
+                                <p class="text-sm text-blue-100">
+                                    This calculator uses 232 working days per year as the basis for holiday calculations.
+                                    All percentages are applied to the rolled-up rate (basic pay + holiday pay).
+                                </p>
+                            </div>
+                            
+                            <div class="flex justify-center">
+                                <button id="resetDefaults" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg">
+                                    Reset to Defaults
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calculator Back (Results) -->
+                    <div class="card-face card-back">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-semibold">Calculator Results</h3>
+                            <button id="flipToSettings" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                                    <path d="M19 12H5"></path>
+                                    <path d="m12 19-7-7 7-7"></path>
+                                </svg>
+                                <span>Edit Settings</span>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-lg font-medium mb-4">Breakdown</h4>
+                                
+                                <!-- Rolled Up Rate -->
+                                <div class="results-group">
+                                    <div class="results-header" data-toggle="rolledUp">
+                                        <div class="flex items-center">
+                                            <span class="font-medium">Rolled Up Rate</span>
+                                            <span class="ml-1 cursor-help" title="Basic pay plus holiday pay">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono font-bold" id="rolledUpRate">£0.00</span>
+                                            <svg class="toggle-icon ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="results-body" id="rolledUp">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-blue-200">Basic Pay:</span>
+                                            <span class="font-mono" id="basicPayResult">£0.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-blue-200">Holiday Pay:</span>
+                                            <span class="font-mono" id="holidayPay">£0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Employer Costs -->
+                                <div class="results-group">
+                                    <div class="results-header" data-toggle="empCosts">
+                                        <div class="flex items-center">
+                                            <span class="font-medium">Employer Costs</span>
+                                            <span class="ml-1 cursor-help" title="Sum of employer NI, pension, and levy">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono font-bold" id="employerCosts">£0.00</span>
+                                            <svg class="toggle-icon ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="results-body" id="empCosts">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-blue-200">Employer NI:</span>
+                                            <span class="font-mono" id="erniValue">£0.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-blue-200">Pension:</span>
+                                            <div class="flex items-center">
+                                                <span class="pension-opted-out hidden opted-out-badge">Opted out</span>
+                                                <span class="font-mono" id="pensionValue">£0.00</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-blue-200">Apprenticeship Levy:</span>
+                                            <div class="flex items-center">
+                                                <span class="levy-opted-out hidden opted-out-badge">Opted out</span>
+                                                <span class="font-mono" id="levyValue">£0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <!-- Bill Rate -->
+                                <div class="results-group bg-gradient-to-r from-blue-900 to-blue-800">
+                                    <div class="results-header" data-toggle="billRate">
+                                        <div class="flex items-center">
+                                            <span class="font-medium">Bill Rate</span>
+                                            <span class="ml-1 cursor-help" title="Final bill rate including all costs and agency markup">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="font-mono font-bold text-xl" id="billRate">£0.00</span>
+                                            <svg class="toggle-icon ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="results-body" id="billRate">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-blue-200">Third Party Rate:</span>
+                                            <span class="font-mono" id="thirdPartyRate">£0.00</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-blue-200">Agency Markup:</span>
+                                            <span class="font-mono" id="agencyRate">£0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart -->
+                                <div class="mt-4 card p-4">
+                                    <h4 class="text-lg font-medium mb-4">Cost Breakdown</h4>
+                                    <canvas id="breakdownChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex flex-col items-center space-y-2">
+                            <p class="text-center text-blue-100 mb-2">Share this calculation or save for later</p>
+                            <div class="flex space-x-4">
+                                <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                                        <polyline points="16 6 12 2 8 6"></polyline>
+                                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                                    </svg>
+                                    Save Calculation
+                                </button>
+                                <button class="bg-transparent border border-blue-400 hover:bg-blue-400/10 text-white px-4 py-2 rounded-lg flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                                        <circle cx="18" cy="5" r="3"></circle>
+                                        <circle cx="6" cy="12" r="3"></circle>
+                                        <circle cx="18" cy="19" r="3"></circle>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                    </svg>
+                                    Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <h3 class="text-2xl font-bold mb-8">Other Calculators</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="vat-calculator.html" class="card p-4 text-center hover:transform hover:scale-105 transition">
+                        <div class="text-blue-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <span>VAT Calculator</span>
+                    </a>
+                    <a href="shadow-payslip.html" class="card p-4 text-center hover:transform hover:scale-105 transition">
+                        <div class="text-blue-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <span>Shadow Payslip</span>
+                    </a>
+                    <a href="uk-tax-code.html" class="card p-4 text-center hover:transform hover:scale-105 transition">
+                        <div class="text-blue-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto">
+                                <path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <path d="M2 15h10"></path>
+                                <path d="M9 18l3-3-3-3"></path>
+                            </svg>
+                        </div>
+                        <span>UK Tax Codes</span>
+                    </a>
+                    <a href="index.html#calculators" class="card p-4 text-center hover:transform hover:scale-105 transition">
+                        <div class="text-blue-400 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="9" y1="21" x2="9" y2="9"></line>
+                            </svg>
+                        </div>
+                        <span>All Calculators</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer py-8 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-sm text-blue-200">© 2025 SpentIQ. All rights reserved.</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="text-blue-200 hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-blue-200 hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-blue-200 hover:text-white transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Constants
+        const WORKING_DAYS_PER_YEAR = 232;
+        
+        // DOM Elements
+        const flipCard = document.getElementById('flipCard');
+        const flipToResults = document.getElementById('flipToResults');
+        const flipToSettings = document.getElementById('flipToSettings');
+        
+        // Input elements
+        const basicPayInput = document.getElementById('basicPay');
+        const holidayDaysInput = document.getElementById('holidayDays');
+        const employerNIInput = document.getElementById('employerNI');
+        const employerPensionInput = document.getElementById('employerPension');
+        const appLevyInput = document.getElementById('appLevy');
+        const markupInput = document.getElementById('markup');
+        
+        // Input value displays
+        const holidayDaysValue = document.getElementById('holidayDaysValue');
+        const employerNIValue = document.getElementById('employerNIValue');
+        const employerPensionValue = document.getElementById('employerPensionValue');
+        const appLevyValue = document.getElementById('appLevyValue');
+        const markupValue = document.getElementById('markupValue');
+        
+        // Opt-out buttons
+        const pensionOptOutBtn = document.getElementById('pensionOptOut');
+        const levyOptOutBtn = document.getElementById('levyOptOut');
+        
+        // Result elements
+        const basicPayResult = document.getElementById('basicPayResult');
+        const holidayPay = document.getElementById('holidayPay');
+        const rolledUpRate = document.getElementById('rolledUpRate');
+        const erniValue = document.getElementById('erniValue');
+        const pensionValue = document.getElementById('pensionValue');
+        const levyValue = document.getElementById('levyValue');
+        const employerCosts = document.getElementById('employerCosts');
+        const thirdPartyRate = document.getElementById('thirdPartyRate');
+        const agencyRate = document.getElementById('agencyRate');
+        const billRate = document.getElementById('billRate');
+        
+        // Opt-out badges
+        const pensionOptedOut = document.querySelector('.pension-opted-out');
+        const levyOptedOut = document.querySelector('.levy-opted-out');
+        
+        // Reset button
+        const resetDefaultsBtn = document.getElementById('resetDefaults');
+        
+        // Calculation state
+        let state = {
+            basicPay: 0,
+            holidayDays: 28,
+            employerNI: 15,
+            employerPension: 3,
+            appLevy: 0.5,
+            markup: 5,
+            pensionOptedOut: false,
+            levyOptedOut: false
+        };
+        
+        // Init chart
+        let breakdownChart;
+        
+        // Format as GBP
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+        
+        // Calculate all values
+        function calculate() {
+            // Convert input values
+            const basicPay = parseFloat(state.basicPay) || 0;
+            const holidayDays = parseInt(state.holidayDays);
+            const employerNI = parseFloat(state.employerNI) / 100;
+            const employerPension = state.pensionOptedOut ? 0 : parseFloat(state.employerPension) / 100;
+            const appLevy = state.levyOptedOut ? 0 : parseFloat(state.appLevy) / 100;
+            const markup = parseFloat(state.markup) / 100;
+            
+            // Calculate holiday percentage
+            const holidayPercentage = holidayDays / WORKING_DAYS_PER_YEAR;
+            
+            // Calculate holiday pay
+            const holidayPayValue = basicPay * holidayPercentage;
+            
+            // Calculate rolled up rate
+            const rolledUpRateValue = basicPay + holidayPayValue;
+            
+            // Calculate employer costs
+            const erniValue = rolledUpRateValue * employerNI;
+            const pensionValueCalc = rolledUpRateValue * employerPension;
+            const levyValueCalc = rolledUpRateValue * appLevy;
+            const employerCostsValue = erniValue + pensionValueCalc + levyValueCalc;
+            
+            // Calculate third party rate (rolled up rate + employer costs)
+            const thirdPartyRateValue = rolledUpRateValue + employerCostsValue;
+            
+            // Calculate agency margin
+            const agencyRateValue = thirdPartyRateValue * markup;
+            
+            // Calculate final bill rate
+            const billRateValue = thirdPartyRateValue + agencyRateValue;
+            
+            // Update result elements
+            basicPayResult.textContent = formatCurrency(basicPay);
+            holidayPay.textContent = formatCurrency(holidayPayValue);
+            rolledUpRate.textContent = formatCurrency(rolledUpRateValue);
+            erniValue.textContent = formatCurrency(erniValue);
+            pensionValue.textContent = formatCurrency(pensionValueCalc);
+            levyValue.textContent = formatCurrency(levyValueCalc);
+            employerCosts.textContent = formatCurrency(employerCostsValue);
+            thirdPartyRate.textContent = formatCurrency(thirdPartyRateValue);
+            agencyRate.textContent = formatCurrency(agencyRateValue);
+            billRate.textContent = formatCurrency(billRateValue);
+            
+            // Update opt-out badges visibility
+            pensionOptedOut.classList.toggle('hidden', !state.pensionOptedOut);
+            levyOptedOut.classList.toggle('hidden', !state.levyOptedOut);
+            
+            // Update chart
+            updateChart(basicPay, holidayPayValue, erniValue, pensionValueCalc, levyValueCalc, agencyRateValue);
+        }
+        
+        // Update chart with new values
+        function updateChart(basicPay, holidayPay, erni, pension, levy, agency) {
+            if (breakdownChart) {
+                breakdownChart.destroy();
+            }
+            
+            const ctx = document.getElementById('breakdownChart').getContext('2d');
+            breakdownChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Basic Pay', 'Holiday Pay', 'Employer NI', 'Pension', 'Apprenticeship Levy', 'Agency Markup'],
+                    datasets: [{
+                        data: [basicPay, holidayPay, erni, pension, levy, agency],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(168, 85, 247, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'white',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${formatCurrency(context.raw)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize the calculator
+        function init() {
+            // Set initial values
+            basicPayInput.value = state.basicPay;
+            holidayDaysInput.value = state.holidayDays;
+            employerNIInput.value = state.employerNI;
+            employerPensionInput.value = state.employerPension;
+            appLevyInput.value = state.appLevy;
+            markupInput.value = state.markup;
+            
+            // Update displays
+            holidayDaysValue.textContent = state.holidayDays;
+            employerNIValue.textContent = state.employerNI;
+            employerPensionValue.textContent = state.employerPension;
+            appLevyValue.textContent = state.appLevy;
+            markupValue.textContent = state.markup;
+            
+            // Calculate initial values
+            calculate();
+            
+            // Set up event listeners
+            flipToResults.addEventListener('click', () => {
+                flipCard.classList.add('flipped');
+            });
+            
+            flipToSettings.addEventListener('click', () => {
+                flipCard.classList.remove('flipped');
+            });
+            
+            // Input change events
+            basicPayInput.addEventListener('input', e => {
+                state.basicPay = e.target.value;
+                calculate();
+            });
+            
+            holidayDaysInput.addEventListener('input', e => {
+                state.holidayDays = e.target.value;
+                holidayDaysValue.textContent = e.target.value;
+                calculate();
+            });
+            
+            employerNIInput.addEventListener('input', e => {
+                state.employerNI = e.target.value;
+                employerNIValue.textContent = e.target.value;
+                calculate();
+            });
+            
+            employerPensionInput.addEventListener('input', e => {
+                state.employerPension = e.target.value;
+                employerPensionValue.textContent = e.target.value;
+                calculate();
+            });
+            
+            appLevyInput.addEventListener('input', e => {
+                state.appLevy = e.target.value;
+                appLevyValue.textContent = e.target.value;
+                calculate();
+            });
+            
+            markupInput.addEventListener('input', e => {
+                state.markup = e.target.value;
+                markupValue.textContent = e.target.value;
+                calculate();
+            });
+            
+            // Opt-out buttons
+            pensionOptOutBtn.addEventListener('click', () => {
+                state.pensionOptedOut = !state.pensionOptedOut;
+                pensionOptOutBtn.classList.toggle('active', state.pensionOptedOut);
+                employerPensionInput.disabled = state.pensionOptedOut;
+                calculate();
+            });
+            
+            levyOptOutBtn.addEventListener('click', () => {
+                state.levyOptedOut = !state.levyOptedOut;
+                levyOptOutBtn.classList.toggle('active', state.levyOptedOut);
+                appLevyInput.disabled = state.levyOptedOut;
+                calculate();
+            });
+            
+            // Reset defaults
+            resetDefaultsBtn.addEventListener('click', () => {
+                state = {
+                    basicPay: 0,
+                    holidayDays: 28,
+                    employerNI: 15,
+                    employerPension: 3,
+                    appLevy: 0.5,
+                    markup: 5,
+                    pensionOptedOut: false,
+                    levyOptedOut: false
+                };
+                
+                // Reset form inputs
+                basicPayInput.value = state.basicPay;
+                holidayDaysInput.value = state.holidayDays;
+                employerNIInput.value = state.employerNI;
+                employerPensionInput.value = state.employerPension;
+                appLevyInput.value = state.appLevy;
+                markupInput.value = state.markup;
+                
+                // Reset displays
+                holidayDaysValue.textContent = state.holidayDays;
+                employerNIValue.textContent = state.employerNI;
+                employerPensionValue.textContent = state.employerPension;
+                appLevyValue.textContent = state.appLevy;
+                markupValue.textContent = state.markup;
+                
+                // Reset opt-out buttons
+                pensionOptOutBtn.classList.toggle('active', false);
+                levyOptOutBtn.classList.toggle('active', false);
+                employerPensionInput.disabled = false;
+                appLevyInput.disabled = false;
+                
+                calculate();
+            });
+            
+            // Toggle sections
+            document.querySelectorAll('.results-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.getAttribute('data-toggle');
+                    const target = document.getElementById(targetId);
+                    target.classList.toggle('active');
+                    header.querySelector('.toggle-icon').classList.toggle('rotate-180');
+                });
+            });
+            
+            // Open first section by default
+            document.getElementById('rolledUp').classList.add('active');
+            document.querySelector('[data-toggle="rolledUp"] .toggle-icon').classList.add('rotate-180');
+        }
+        
+        // Run initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
