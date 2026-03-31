@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value IQ — SpentIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500,1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0c0f14;
+  --bg2:     #13181f;
+  --bg3:     #1a2030;
+  --bg4:     #1e2638;
+  --border:  rgba(255,255,255,0.10);
+  --borderB: rgba(255,255,255,0.20);
+  --text:    #f0f4fa;
+  --muted:   #b8c4d4;
+  --dim:     #8896aa;
+  --amber:   #f0a500;
+  --amberD:  rgba(240,165,0,0.10);
+  --amberG:  rgba(240,165,0,0.20);
+  --green:   #34c759;
+  --greenD:  rgba(52,199,89,0.10);
+  --red:     #ff453a;
+  --redD:    rgba(255,69,58,0.10);
+  --blue:    #64d2ff;
+  --blueD:   rgba(100,210,255,0.10);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+body {
+  font-family:'IBM Plex Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+}
+
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.03) 1px,transparent 1px);
+  background-size:32px 32px;
+  pointer-events:none; z-index:0;
+}
+
+/* ── HEADER ── */
+header {
+  position:sticky; top:0; z-index:200;
+  height:48px; border-bottom:1px solid var(--border);
+  background:rgba(12,15,20,0.95);
+  backdrop-filter:blur(16px);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px;
+}
+.logo {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px; font-weight:500;
+  letter-spacing:0.08em; color:var(--text);
+  text-decoration:none;
+}
+.logo em{color:var(--amber);font-style:normal}
+.hbadge {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px; letter-spacing:0.16em;
+  text-transform:uppercase; color:var(--muted);
+  display:flex; align-items:center; gap:6px;
+}
+.hbadge-dot {
+  width:5px;height:5px;background:var(--amber);
+  border-radius:50%; animation:blink 2.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* ── WRAP ── */
+.wrap {
+  position:relative;z-index:1;
+  max-width:960px;margin:0 auto;
+  padding:32px 24px 80px;
+}
+
+/* ── PREMIUM BANNER (added by Femi) ── */
+.premium-banner {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;
+  background:linear-gradient(90deg,rgba(240,165,0,0.12),rgba(240,165,0,0.06));
+  border:1px solid rgba(240,165,0,0.25);
+  margin-bottom:24px;
+  border-radius:4px;
+}
+.premium-left{display:flex;align-items:center;gap:12px;flex:1}
+.premium-tag {
+  background:var(--amber);color:var(--bg);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:0.12em;
+  text-transform:uppercase;font-weight:600;
+  padding:4px 8px;border-radius:2px;
+}
+.premium-text {
+  font-size:13px;color:var(--text);font-weight:400;line-height:1.5;
+}
+.premium-text strong{color:var(--amber);font-weight:500}
+.premium-btn {
+  background:var(--amber);color:var(--bg);border:none;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;font-weight:500;
+  padding:10px 16px;border-radius:2px;cursor:pointer;
+  transition:background .15s;
+}
+.premium-btn:hover{background:#ffba30}
+.premium-btn.locked{background:rgba(240,165,0,0.15);color:var(--amber);cursor:not-allowed}
+
+/* ── PREMIUM MODAL (added by Femi) ── */
+.premium-overlay {
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(12px);
+  z-index:600;display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.premium-overlay.show{display:flex}
+.premium-modal {
+  background:var(--bg2);border:1px solid var(--borderB);
+  padding:32px;width:100%;max-width:520px;
+  position:relative;
+}
+.pm-x {
+  position:absolute;top:16px;right:16px;
+  background:none;border:none;color:var(--dim);
+  cursor:pointer;font-size:18px;line-height:1;padding:6px;
+}
+.pm-x:hover{color:var(--text)}
+.pm h2{
+  font-family:'Syne',sans-serif;
+  font-size:24px;font-weight:800;margin-bottom:8px;
+}
+.pm-sub{font-size:14px;color:var(--muted);margin-bottom:24px;font-weight:400;line-height:1.6}
+.pm-features{list-style:none;margin-bottom:24px}
+.pm-features li{
+  font-size:13px;color:var(--text);
+  margin-bottom:10px;padding-left:24px;
+  position:relative;line-height:1.5;
+}
+.pm-features li::before{
+  content:'✓';
+  position:absolute;left:0;top:0;
+  color:var(--amber);font-weight:600;
+}
+.pm-price{
+  font-family:'Syne',sans-serif;
+  font-size:42px;font-weight:800;color:var(--amber);
+  margin-bottom:8px;line-height:1;
+}
+.pm-price-sub{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--muted);margin-bottom:24px;
+}
+.pm-btn {
+  width:100%;padding:14px;
+  background:var(--amber);color:var(--bg);border:none;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;font-weight:500;
+  cursor:pointer;transition:background .15s;
+}
+.pm-btn:hover{background:#ffba30}
+
+/* ── CONCEPT STRIP ── */
+.concept-strip {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:32px; align-items:center;
+  padding:28px 32px;
+  background:var(--bg2); border:1px solid var(--border);
+  margin-bottom:20px;
+}
+
+/* POUND COIN SVG */
+.pound-coin { flex-shrink:0; }
+
+.concept-text h1 {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,2.8vw,34px);
+  font-weight:800; line-height:1.1;
+  letter-spacing:-0.02em; margin-bottom:10px;
+}
+.concept-text h1 em{color:var(--amber);font-style:normal}
+
+.concept-text p {
+  font-size:14px; color:var(--muted);
+  line-height:1.75; font-weight:400;
+  max-width:480px;
+}
+
+/* ── THE SENTENCE — hero, always visible ── */
+.sentence-hero {
+  padding:22px 24px;
+  background:var(--amberD);
+  border:1px solid rgba(240,165,0,0.18);
+  margin-bottom:20px;
+  position:relative;
+}
+.sentence-hero-tag {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--amber);
+  margin-bottom:10px; opacity:.7;
+}
+.sentence-hero-body {
+  font-size:16px; line-height:1.85;
+  color:var(--text); font-weight:400;
+}
+.sentence-hero-body strong{color:var(--amber);font-weight:500}
+.chip {
+  display:inline-block;
+  background:rgba(240,165,0,0.15);
+  border:1px solid rgba(240,165,0,0.3);
+  color:var(--amber);
+  padding:1px 7px; border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px; font-weight:500;
+  transition:all .25s ease;
+  min-width:48px; text-align:center;
+}
+.chip.empty{color:var(--dim);border-color:var(--dim);background:transparent}
+
+/* ── VACANCY COUNTER ── */
+.vacancy-counter {
+  display:flex; align-items:flex-start; gap:14px;
+  padding:16px 20px;
+  background:var(--redD);
+  border:1px solid rgba(255,69,58,0.2);
+  margin-bottom:20px;
+}
+.vc-icon {
+  font-size:20px; flex-shrink:0; margin-top:2px;
+  animation:throb 2s ease-in-out infinite;
+}
+@keyframes throb{0%,100%{opacity:1}50%{opacity:0.5}}
+.vc-main { flex:1; display:flex; flex-direction:column; gap:12px; }
+.vc-top-row { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.vc-text {
+  font-size:13px; color:var(--muted);
+  font-weight:400; line-height:1.6; flex:1;
+}
+.vc-text strong{color:var(--red);font-weight:500}
+.vc-input-row {
+  display:flex; align-items:center; gap:6px;
+  flex-shrink:0;
+}
+.vc-days-input {
+  width:56px; background:var(--bg3);
+  border:1px solid rgba(255,69,58,0.3); color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px; padding:6px 8px; outline:none;
+  text-align:center;
+}
+.vc-days-input:focus{border-color:var(--red)}
+.vc-lbl2{font-size:11px;color:var(--muted);white-space:nowrap}
+.vc-cost-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px;
+  background:rgba(255,69,58,0.08);
+  border:1px solid rgba(255,69,58,0.15);
+}
+.vc-days-label {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--muted);
+}
+.vc-days-val {
+  font-family:'Syne',sans-serif;
+  font-size:22px; font-weight:800; color:var(--red);
+  line-height:1;
+}
+
+/* ── PHASE 1 — core inputs ── */
+.phase {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:24px; margin-bottom:16px;
+}
+
+.phase-label {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--dim);
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:8px;
+}
+.phase-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.phase-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:18px;height:18px; background:var(--amber);
+  color:var(--bg); font-size:10px; font-weight:700;
+  border-radius:50%; flex-shrink:0;
+}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* field */
+.field{margin-bottom:0}
+.flabel {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--muted);
+  margin-bottom:6px;
+  display:flex; justify-content:space-between; align-items:baseline;
+}
+.fhint{font-size:9px;color:var(--dim);letter-spacing:0.04em}
+.fplain{
+  font-size:12px; color:var(--muted);
+  line-height:1.65; font-weight:400; font-style:normal;
+  margin-bottom:8px;
+}
+
+.irow{position:relative;display:flex;align-items:center}
+.ipfx{
+  position:absolute;left:11px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;color:var(--dim);pointer-events:none;
+}
+
+input[type=number],input[type=text]{
+  width:100%; background:var(--bg3);
+  border:1px solid var(--border); color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:15px;
+  padding:12px 12px 12px 26px; outline:none;
+  transition:border-color .15s;
+  -moz-appearance:textfield;appearance:textfield;
+}
+input[type=number]::-webkit-inner-spin-button{display:none}
+input:focus{border-color:var(--amber);background:rgba(240,165,0,0.03)}
+input[type=text]{font-size:14px}
+
+/* KEEP SLIDER */
+.keep-slider-wrap {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:16px 18px;
+}
+.keep-track-label {
+  display:flex; justify-content:space-between;
+  align-items:baseline; margin-bottom:12px;
+}
+.keep-track-label .ktl-main {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--muted);
+}
+.keep-track-label .ktl-val {
+  font-family:'Syne',sans-serif;
+  font-size:22px; font-weight:800; color:var(--amber);
+}
+
+/* the pound bar visual */
+.pound-bar-wrap{margin-bottom:12px}
+.pound-bar {
+  height:28px; border-radius:0;
+  display:flex; overflow:hidden;
+  border:1px solid var(--border);
+}
+.pound-bar-keep {
+  background:linear-gradient(90deg,rgba(240,165,0,0.5),rgba(240,165,0,0.3));
+  height:100%; transition:width .3s ease;
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;color:rgba(240,165,0,0.9);
+  white-space:nowrap; overflow:hidden;
+}
+.pound-bar-cost {
+  background:rgba(255,255,255,0.06);
+  height:100%;flex:1;
+  display:flex;align-items:center;padding-left:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;color:var(--muted);
+  white-space:nowrap; overflow:hidden;
+}
+.pound-bar-legend {
+  display:flex;gap:16px;margin-top:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:0.08em;color:var(--muted);
+}
+.pbl-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+
+input[type=range]{
+  width:100%;-webkit-appearance:none;
+  height:2px;background:var(--borderB);outline:none;padding:0;
+  margin-top:10px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  background:var(--amber);border-radius:50%;
+  cursor:pointer;transition:transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
+
+.slider-sublabel{
+  font-size:12px; color:var(--muted);
+  margin-top:10px; font-style:normal; font-weight:400;
+  line-height:1.65;
+}
+
+/* ── BREAK-EVEN BAR — the hero output ── */
+.beb-wrap {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:24px; margin-bottom:16px;
+}
+.beb-label {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--dim);
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:8px;
+}
+.beb-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.beb-hero {
+  text-align:center; padding:24px 20px;
+  background:var(--bg3); border:1px solid var(--border);
+  margin-bottom:16px; position:relative; overflow:hidden;
+}
+.beb-hero::after {
+  content:''; position:absolute;
+  bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+  animation:scan 3s ease-in-out infinite;
+}
+@keyframes scan{0%,100%{opacity:.3}50%{opacity:1}}
+
+.beb-eyebrow {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:0.22em;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:8px;
+}
+.beb-num {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(44px,6vw,64px);
+  font-weight:800;color:var(--amber);
+  line-height:1;letter-spacing:-0.03em;
+  transition:opacity .2s,transform .2s;
+}
+.beb-num.flash{opacity:0;transform:translateY(-8px)}
+.beb-sub {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--muted);
+  margin-top:6px;letter-spacing:0.06em;
+}
+.beb-because {
+  font-size:13px; color:var(--muted);
+  margin-top:12px; line-height:1.7;
+  font-weight:400; font-style:italic;
+  padding:0 12px;
+}
+
+/* two-bar visual */
+.beb-bars {
+  display:flex;flex-direction:column;gap:10px;
+  margin-bottom:14px;
+}
+.beb-bar-row {
+  display:flex;align-items:center;gap:12px;
+}
+.beb-bar-name {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--text);
+  width:120px;flex-shrink:0;line-height:1.3;
+}
+.beb-bar-track {
+  flex:1;height:24px;
+  background:var(--bg3);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.beb-bar-fill {
+  height:100%;position:absolute;left:0;top:0;
+  transition:width .5s ease;
+}
+.beb-bar-fill.cost{background:rgba(240,165,0,0.45)}
+.beb-bar-fill.rev{background:rgba(52,199,89,0.35)}
+.beb-bar-val {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;color:var(--text);
+  width:80px;text-align:right;flex-shrink:0;
+}
+.beb-gap-note {
+  font-size:12px; color:var(--muted);
+  font-style:italic; font-weight:400;
+  line-height:1.65; padding:12px 14px;
+  background:var(--bg3); border:1px solid var(--border);
+}
+
+/* ── REFINE SECTION (phase 2) ── */
+.expand-toggle {
+  width:100%;padding:13px 18px;
+  background:var(--bg2);border:1px solid var(--borderB);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .15s; margin-bottom:4px;
+}
+.expand-toggle:hover{border-color:var(--borderB);color:var(--text)}
+.expand-toggle .arrow{transition:transform .25s}
+.expand-toggle.open .arrow{transform:rotate(180deg)}
+
+.expandable{
+  display:none;
+  background:var(--bg2);border:1px solid var(--borderB);
+  border-top:none; padding:24px;
+  margin-bottom:4px;
+  animation:fadeIn .2s ease;
+}
+.expandable.open{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* toggle switch */
+.trow {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--bg3);
+  border:1px solid var(--border);cursor:pointer;
+  margin-bottom:12px;transition:border-color .15s;
+}
+.trow:hover{border-color:var(--borderB)}
+.tswitch {
+  width:28px;height:15px;
+  background:var(--dim);border-radius:8px;
+  position:relative;transition:background .2s;flex-shrink:0;
+}
+.tswitch.on{background:var(--amber)}
+.tswitch::after {
+  content:'';position:absolute;
+  top:2px;left:2px;width:11px;height:11px;
+  background:white;border-radius:50%;transition:left .2s;
+}
+.tswitch.on::after{left:15px}
+.tlabel{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:0.06em;color:var(--text);line-height:1.4;
+}
+
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── FEE DILUTION ── */
+.fd-wrap {
+  padding:16px 18px;
+  background:var(--bg3);border:1px solid var(--border);
+  margin-top:16px;
+}
+.fd-title {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--dim);
+  margin-bottom:12px;
+}
+.fd-rows{display:flex;flex-direction:column;gap:10px}
+.fd-row{display:flex;align-items:center;gap:10px;min-height:20px}
+.fd-tenure{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--text);
+  width:72px;flex-shrink:0;
+}
+.fd-track{
+  flex:1;height:12px;
+  background:var(--bg);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.fd-fill{
+  height:100%;position:absolute;left:0;top:0;
+  background:rgba(100,210,255,0.4);
+  transition:width .5s ease;min-width:0;
+}
+.fd-val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;color:var(--blue);
+  width:80px;text-align:right;flex-shrink:0;
+}
+.fd-note{
+  font-size:12px; color:var(--muted);
+  margin-top:12px; font-style:italic;
+  font-weight:400; line-height:1.6;
+}
+
+/* ── OPP COST ── */
+.opp-wrap {
+  background:var(--bg2);border:1px solid var(--border);
+  padding:24px; margin-bottom:16px;
+  display:none;
+}
+.opp-wrap.show{display:block}
+
+.bleed-row {
+  display:flex;align-items:center;gap:16px;
+  padding:16px;background:var(--redD);
+  border:1px solid rgba(255,69,58,0.2);
+  margin-bottom:12px;
+}
+.bleed-icon{font-size:24px;flex-shrink:0}
+.bleed-text{font-size:13px;color:var(--muted);font-weight:400;line-height:1.6}
+.bleed-text strong{color:var(--red);font-weight:500}
+.bleed-val {
+  margin-left:auto;flex-shrink:0;text-align:right;
+}
+.bleed-val-num {
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;color:var(--red);line-height:1;
+}
+.bleed-val-sub {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;color:var(--muted);letter-spacing:0.08em;
+  margin-top:2px;
+}
+
+.opp-vs {
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:12px;align-items:center;margin-bottom:12px;
+}
+.opp-bucket {
+  padding:16px;border:1px solid var(--border);
+  background:var(--bg3);text-align:center;
+}
+.opp-bucket.bleed-b{border-color:rgba(255,69,58,0.25);background:var(--redD)}
+.opp-bucket.hire-b{border-color:rgba(52,199,89,0.25);background:var(--greenD)}
+.ob-lbl{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+.ob-amt{
+  font-family:'Syne',sans-serif;
+  font-size:26px;font-weight:800;line-height:1;margin-bottom:4px;
+}
+.opp-bucket.bleed-b .ob-amt{color:var(--red)}
+.opp-bucket.hire-b .ob-amt{color:var(--green)}
+.ob-desc{font-size:12px;color:var(--muted);line-height:1.5;font-weight:400}
+.vs-sep{
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:800;color:var(--muted);text-align:center;
+}
+.opp-result {
+  text-align:center;padding:13px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;letter-spacing:0.06em;
+}
+.opp-result.pos{background:var(--greenD);border:1px solid rgba(52,199,89,0.2);color:var(--green)}
+.opp-result.neg{background:var(--redD);border:1px solid rgba(255,69,58,0.2);color:var(--red)}
+
+/* ── SHARE ── */
+.share-row{
+  display:flex;gap:8px;margin-top:16px;
+}
+.share-btn {
+  flex:1;padding:13px;
+  background:var(--amber);color:var(--bg);border:none;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:0.12em;
+  text-transform:uppercase;font-weight:500;
+  cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.share-btn:hover{background:#ffba30}
+.sec-btn {
+  padding:13px 16px;
+  background:transparent;border:1px solid var(--borderB);color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;transition:all .15s;
+}
+.sec-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ── CLOSE QUESTION ── */
+.close-q {
+  padding:16px 18px;
+  background:var(--bg2);border:1px solid var(--borderB);
+  margin-top:16px;
+  font-size:14px;line-height:1.65;
+  color:var(--muted);font-style:italic;font-weight:400;
+}
+.close-q strong{color:var(--text);font-style:normal;font-weight:500}
+
+/* ── MODAL ── */
+.overlay {
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(8px);
+  z-index:500;display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.show{display:flex}
+.modal {
+  background:var(--bg2);border:1px solid var(--borderB);
+  padding:28px;width:100%;max-width:480px;
+  position:relative;animation:mIn .2s ease;
+}
+@keyframes mIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.modal-x {
+  position:absolute;top:14px;right:14px;
+  background:none;border:none;color:var(--dim);
+  cursor:pointer;font-size:16px;line-height:1;padding:4px;
+}
+.modal-x:hover{color:var(--text)}
+.modal h2{
+  font-family:'Syne',sans-serif;
+  font-size:20px;font-weight:700;margin-bottom:6px;
+}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;font-weight:400}
+.scard{
+  background:var(--bg3);border:1px solid var(--borderB);
+  padding:20px;margin-bottom:14px;
+}
+.scard-head{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;margin-bottom:14px;
+}
+.scard-role{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.scard-brand{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber)}
+.scard-hurdle{
+  text-align:center;padding:16px;
+  background:var(--bg);border:1px solid var(--border);margin-bottom:12px;
+}
+.scard-hurdle-lbl{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+.scard-hurdle-num{
+  font-family:'Syne',sans-serif;
+  font-size:34px;font-weight:800;color:var(--amber);line-height:1;
+}
+.scard-hurdle-ann{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;color:var(--muted);margin-top:4px;
+}
+.scard-stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:6px;margin-bottom:12px;
+}
+.scard-stat{text-align:center;padding:8px;background:var(--bg)}
+.scard-stat-lbl{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:8px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:3px;
+}
+.scard-stat-val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;font-weight:500;color:var(--text);
+}
+.scard-sentence{
+  font-size:12px;line-height:1.6;
+  color:var(--muted);font-weight:400;
+  padding:10px 12px;
+  background:var(--amberD);
+  border-left:2px solid var(--amber);
+}
+.scard-sentence strong{color:var(--amber);font-weight:500}
+.copy-btn {
+  width:100%;padding:12px;
+  background:var(--amber);color:var(--bg);border:none;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;font-weight:500;
+  cursor:pointer;transition:background .15s;
+}
+.copy-btn:hover{background:#ffba30}
+
+/* spacer */
+.spacer{height:16px}
+
+/* responsive */
+@media(max-width:640px){
+  .concept-strip{grid-template-columns:1fr}
+  .pound-coin{display:none}
+  .two-col{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .opp-vs{grid-template-columns:1fr}
+  .vs-sep{display:none}
+  .beb-bar-name{width:90px;font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">spent<em>iq</em> · value<em>IQ</em></a>
+  <div class="hbadge"><div class="hbadge-dot"></div>The Break-Even Bar</div>
+</header>
+
+<div class="wrap">
+
+  <!-- PREMIUM BANNER (added by Femi) -->
+  <div class="premium-banner" id="premiumBanner">
+    <div class="premium-left">
+      <span class="premium-tag">PRO FEATURE</span>
+      <span class="premium-text">Unlock <strong>Vacancy Counter</strong> and <strong>Empty Seat Bleed</strong> — show clients the real cost of delay.</span>
+    </div>
+    <button class="premium-btn locked" id="unlockBtn" onclick="showPremiumModal()">Unlock — £99</button>
+  </div>
+
+  <!-- ── CONCEPT STRIP ── -->
+  <div class="concept-strip">
+
+    <!-- POUND COIN — static SVG illustration -->
+    <div class="pound-coin">
+      <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="coinClip">
+            <circle cx="60" cy="60" r="52"/>
+          </clipPath>
+        </defs>
+        <!-- coin body -->
+        <circle cx="60" cy="60" r="54" fill="#1a2030" stroke="rgba(240,165,0,0.3)" stroke-width="1.5"/>
+        <!-- cost of delivery slice (bottom) -->
+        <path id="costSlice" d="M60,60 L60,8 A52,52,0,1,1,59.999,8 Z" fill="rgba(255,255,255,0.04)" clip-path="url(#coinClip)"/>
+        <!-- keep slice (top, 30% = 108deg) -->
+        <path id="keepSlice" d="M60,60 L60,8 A52,52,0,0,1,109.9,74 Z" fill="rgba(240,165,0,0.28)" clip-path="url(#coinClip)"/>
+        <!-- dividing line -->
+        <line x1="60" y1="60" x2="60" y2="8" stroke="rgba(240,165,0,0.5)" stroke-width="1"/>
+        <line x1="60" y1="60" x2="109.9" y2="74" stroke="rgba(240,165,0,0.5)" stroke-width="1"/>
+        <!-- centre dot -->
+        <circle cx="60" cy="60" r="3" fill="rgba(240,165,0,0.6)"/>
+        <!-- labels -->
+        <text x="72" y="44" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(240,165,0,0.8)" text-anchor="middle">KEEPS</text>
+        <text x="72" y="54" font-family="IBM Plex Mono,monospace" font-size="9" fill="#f0a500" font-weight="500" text-anchor="middle">30p</text>
+        <text x="40" y="82" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(255,255,255,0.3)" text-anchor="middle">costs of</text>
+        <text x="40" y="92" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(255,255,255,0.3)" text-anchor="middle">delivery</text>
+        <!-- £1 label -->
+        <text x="60" y="115" font-family="IBM Plex Mono,monospace" font-size="9" fill="rgba(240,165,0,0.5)" text-anchor="middle" letter-spacing="2">£1 of revenue</text>
+      </svg>
+    </div>
+
+    <div class="concept-text">
+      <h1>Every hire has a<br><em>Break-Even Bar.</em></h1>
+      <p>Of every pound this business brings in, some goes on delivery costs — the rest is what they keep. The salary has to fit inside the "keep." Enter the salary below and watch the bar appear.</p>
+    </div>
+
+  </div>
+
+  <!-- ── THE SENTENCE — always visible ── -->
+  <div class="sentence-hero">
+    <div class="sentence-hero-tag">What you'll say in the meeting →</div>
+    <div class="sentence-hero-body" id="sentenceHero">
+      To hire <span class="chip empty" id="chipName">the candidate</span>, the business needs to find <span class="chip empty" id="chipMo">£—</span> in monthly value. Their yearly run cost is <span class="chip empty" id="chipCost">£—</span> — and the business keeps <span class="chip empty" id="chipKeep">—p</span> of every pound they generate. That's the bar. <span id="sentenceFee"></span>
+    </div>
+  </div>
+
+  <!-- ── VACANCY COUNTER (PREMIUM) ── -->
+  <div class="vacancy-counter" id="vacancyCounter" style="display:none">
+    <div class="vc-icon">🩸</div>
+    <div class="vc-main">
+      <div class="vc-top-row">
+        <div class="vc-text"><strong>Empty seat cost.</strong> While this role stays open, work isn't getting done — or it's being absorbed by the team. Every day has a price.</div>
+        <div class="vc-input-row">
+          <input type="number" class="vc-days-input" id="vcDays" value="30" min="1" max="365" oninput="calc()">
+          <span class="vc-lbl2">days open</span>
+        </div>
+      </div>
+      <div class="vc-cost-row">
+        <div class="vc-days-label">Estimated cost of keeping this seat open</div>
+        <div class="vc-days-val" id="vcCost">£—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 1 — two fields ── -->
+  <div class="phase">
+    <div class="phase-label"><span class="phase-num">1</span>Start here</div>
+    <div class="two-col">
+      <div class="field">
+        <div class="flabel">Role or candidate name <span class="fhint">Optional</span></div>
+        <div class="irow">
+          <input type="text" id="iName" placeholder="e.g. Senior Account Manager" oninput="calc()">
+        </div>
+      </div>
+      <div class="field">
+        <div class="flabel">Annual salary <span class="fhint">Gross</span></div>
+        <div class="irow">
+          <span class="ipfx">£</span>
+          <input type="number" id="iSalary" value="" placeholder="55000" oninput="calc()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHASE 2 — keep slider ── -->
+  <div class="phase">
+    <div class="phase-label"><span class="phase-num">2</span>What does the business keep?</div>
+    <div class="keep-slider-wrap">
+      <div class="keep-track-label">
+        <span class="ktl-main">Of every £1 of revenue, the business keeps</span>
+        <span class="ktl-val" id="keepValDisplay">30p</span>
+      </div>
+      <div class="pound-bar-wrap">
+        <div class="pound-bar">
+          <div class="pound-bar-keep" id="poundBarKeep" style="width:30%">keeps 30p</div>
+          <div class="pound-bar-cost" id="poundBarCost">70p covers delivery costs</div>
+        </div>
+        <div class="pound-bar-legend">
+          <span><span class="pbl-dot" style="background:rgba(240,165,0,0.5)"></span>What they keep</span>
+          <span><span class="pbl-dot" style="background:rgba(255,255,255,0.1)"></span>Cost of doing the work</span>
+        </div>
+      </div>
+      <input type="range" id="iKeep" min="5" max="80" value="30" oninput="syncKeep()">
+      <div class="slider-sublabel">This is the gross profit margin — what remains after paying for materials, direct labour, and the cost of delivering the work. Not sure? 30p is a reasonable mid-market default. A software business keeps more; a manufacturer keeps less.</div>
+    </div>
+  </div>
+
+  <!-- ── BREAK-EVEN BAR ── -->
+  <div class="beb-wrap">
+    <div class="beb-label">The Break-Even Bar</div>
+
+    <div class="beb-hero">
+      <div class="beb-eyebrow">Monthly revenue needed to cover this hire</div>
+      <div class="beb-num" id="bebNum">£—</div>
+      <div class="beb-sub" id="bebAnn">£— per year</div>
+      <div class="beb-because" id="bebBecause">Enter a salary above to see the bar.</div>
+    </div>
+
+    <div class="beb-bars">
+      <div class="beb-bar-row">
+        <div class="beb-bar-name">Monthly run cost</div>
+        <div class="beb-bar-track"><div class="beb-bar-fill cost" id="barCost" style="width:0%"></div></div>
+        <div class="beb-bar-val" id="barCostVal">£—</div>
+      </div>
+      <div class="beb-bar-row">
+        <div class="beb-bar-name">Break-Even Bar</div>
+        <div class="beb-bar-track"><div class="beb-bar-fill rev" id="barRev" style="width:100%"></div></div>
+        <div class="beb-bar-val" id="barRevVal">£—</div>
+      </div>
+    </div>
+
+    <div class="beb-gap-note" id="bebGapNote">
+      Enter a salary above to see the explanation.
+    </div>
+  </div>
+
+  <!-- ── EXPAND: Refine the numbers ── -->
+  <button class="expand-toggle" id="refineToggle" onclick="toggleSection('refine')">
+    <span>Refine the numbers — add NICs, benefits, recruitment fee</span>
+    <span class="arrow">▼</span>
+  </button>
+  <div class="expandable" id="refineSection">
+
+    <div class="phase-label" style="margin-bottom:16px">Recurring run costs <span style="color:var(--muted);font-style:italic;font-size:10px;margin-left:6px">(these drive the bar)</span></div>
+
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="field">
+        <div class="flabel">Employer NICs &amp; pension <span class="fhint">~15% if unsure</span></div>
+        <p class="fplain">The tax and pension the company pays on top — never appears on a payslip but real to the P&amp;L.</p>
+        <div class="irow"><span class="ipfx">£</span><input type="number" id="iBenefits" value="8250" oninput="calc()"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Other benefits <span class="fhint">Car, health, etc.</span></div>
+        <p class="fplain">Any recurring perks that appear on a P11D or company cost centre.</p>
+        <div class="irow"><span class="ipfx">£</span><input type="number" id="iPerks" value="0" oninput="calc()"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">VAT not reclaimable?</div>
+        <p class="fplain">Only relevant if this business is not VAT-registered — adds 20% to cost base.</p>
+        <div class="trow" onclick="toggleVat()" id="vatRow" style="margin-bottom:0">
+          <div class="tswitch" id="vatSwitch"></div>
+          <span class="tlabel">Not VAT-registered</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-label" style="margin-bottom:16px;margin-top:8px">Getting started costs <span style="color:var(--muted);font-style:italic;font-size:10px;margin-left:6px">(year one only — separate from the bar)</span></div>
+
+    <div class="grid2" style="margin-bottom:0">
+      <div class="field">
+        <div class="flabel">Recruitment fee <span class="fhint">Your placement fee</span></div>
+        <div class="irow"><span class="ipfx">£</span><input type="number" id="iFee" value="0" oninput="calc()"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Onboarding &amp; training <span class="fhint">First 90 days</span></div>
+        <p class="fplain">Why 90 days? New hires typically reach independent productivity between weeks 8–12. Before that, a senior person's time is being consumed. Junior roles: £1–2.5k. Mid-level: £2.5–5k. Senior: £5–10k+. Rule of thumb: 5% of salary.</p>
+        <div class="irow"><span class="ipfx">£</span><input type="number" id="iOnboard" value="0" oninput="calc()"></div>
+      </div>
+    </div>
+
+    <!-- Fee dilution -->
+    <div class="fd-wrap" id="fdWrap" style="display:none">
+      <div class="fd-title">Getting started cost per month — by how long they stay</div>
+      <div class="fd-rows">
+        <div class="fd-row">
+          <div class="fd-tenure">12 months</div>
+          <div class="fd-track"><div class="fd-fill" id="fd12" style="width:0%"></div></div>
+          <div class="fd-val" id="fdv12">—</div>
+        </div>
+        <div class="fd-row">
+          <div class="fd-tenure">24 months</div>
+          <div class="fd-track"><div class="fd-fill" id="fd24" style="width:0%"></div></div>
+          <div class="fd-val" id="fdv24">—</div>
+        </div>
+        <div class="fd-row">
+          <div class="fd-tenure">36 months</div>
+          <div class="fd-track"><div class="fd-fill" id="fd36" style="width:0%"></div></div>
+          <div class="fd-val" id="fdv36">—</div>
+        </div>
+      </div>
+      <div class="fd-note" id="fdNote">The longer they stay, the cheaper the getting-started cost becomes per month.</div>
+    </div>
+
+  </div>
+
+  <!-- ── EXPAND: Empty seat bleed (PREMIUM) ── -->
+  <button class="expand-toggle" id="oppToggle" onclick="toggleSection('opp')">
+    <span>Show empty seat bleed — opportunity cost of keeping this role open <span class="premium-tag" style="margin-left:8px;vertical-align:middle">PRO</span></span>
+    <span class="arrow">▼</span>
+  </button>
+  <div class="expandable" id="oppSection">
+
+    <div class="grid2" style="margin-bottom:16px">
+      <div class="field">
+        <div class="flabel">Senior person's hourly rate <span class="fhint">Doing this work instead</span></div>
+        <p class="fplain">What does the person currently covering this role cost per hour? Use their fully-burdened cost divided by 1,650 hours/year if unsure.</p>
+        <div class="irow"><span class="ipfx">£</span><input type="number" id="iSrRate" value="100" oninput="calc()"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Hours per week being absorbed</div>
+        <p class="fplain">How many hours weekly is the senior person spending on work this hire would own?</p>
+        <div class="irow"><span class="ipfx" style="left:0;position:static;margin-right:8px;font-size:13px;color:var(--dim)"></span>
+          <input type="range" id="iHours" min="2" max="40" value="12" oninput="syncHours()" style="margin-top:0">
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--amber);margin-top:6px" id="hoursDisplay">12 hrs/wk</div>
+      </div>
+    </div>
+
+    <div class="bleed-row">
+      <div class="bleed-icon">🩸</div>
+      <div class="bleed-text">
+        <strong>Monthly bleed:</strong> keeping this seat open costs the business in wasted senior capacity.
+      </div>
+      <div class="bleed-val">
+        <div class="bleed-val-num" id="bleedMo">£—</div>
+        <div class="bleed-val-sub">per month</div>
+      </div>
+    </div>
+
+    <div class="opp-vs">
+      <div class="opp-bucket bleed-b">
+        <div class="ob-lbl">Monthly bleed (now)</div>
+        <div class="ob-amt" id="oppBurn">£—</div>
+        <div class="ob-desc">Senior doing junior work<br><span id="oppBurnDesc">— hrs/wk at £—/hr</span></div>
+      </div>
+      <div class="vs-sep">vs</div>
+      <div class="opp-bucket hire-b">
+        <div class="ob-lbl">Monthly hire cost</div>
+        <div class="ob-amt" id="oppHire">£—</div>
+        <div class="ob-desc">New hire, recurring cost<br>per month</div>
+      </div>
+    </div>
+
+    <div class="opp-result" id="oppResult">Enter values to see the comparison.</div>
+
+  </div>
+
+  <!-- ── CLOSE + SHARE ── -->
+  <div class="close-q">
+    <strong>The close:</strong> "Based on what you know about this role — is <span id="closeBar">that number</span> a realistic bar for someone of this calibre to clear?"
+  </div>
+
+  <div class="share-row">
+    <button class="share-btn" onclick="openModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      Generate Shareable Brief
+    </button>
+    <button class="sec-btn" onclick="resetAll()">Reset</button>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- ── PREMIUM MODAL (added by Femi) ── -->
+<div class="premium-overlay" id="premiumOverlay" onclick="closePremiumModalOut(event)">
+  <div class="premium-modal">
+    <button class="pm-x" onclick="closePremiumModal()">✕</button>
+    <h2>Unlock Value IQ Pro</h2>
+    <div class="pm-sub">Get the tools recruiters need to win budget approvals.</div>
+    <ul class="pm-features">
+      <li>Vacancy Counter — show clients the daily cost of empty seats</li>
+      <li>Empty Seat Bleed — compare senior burn vs hire cost</li>
+      <li>Unlimited shareable briefs — PDF-perfect for email/print</li>
+      <li>Priority support and feature requests</li>
+    </ul>
+    <div class="pm-price">£99</div>
+    <div class="pm-price-sub">One-time payment · Lifetime access</div>
+    <button class="pm-btn" onclick="handlePurchase()">Unlock Now</button>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="overlay" id="modalOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h2>Shareable Brief</h2>
+    <div class="modal-sub">Paste into email or print as a leave-behind.</div>
+    <div class="scard">
+      <div class="scard-head">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);margin-bottom:3px">Value IQ · Break-Even Analysis</div>
+          <div class="scard-role" id="sRole">Role Analysis</div>
+        </div>
+        <div class="scard-brand">spentiq</div>
+      </div>
+      <div class="scard-hurdle">
+        <div class="scard-hurdle-lbl">Monthly Break-Even Bar</div>
+        <div class="scard-hurdle-num" id="sHurdleMo">£—</div>
+        <div class="scard-hurdle-ann" id="sHurdleAnn">£— per year</div>
+      </div>
+      <div class="scard-stats">
+        <div class="scard-stat">
+          <div class="scard-stat-lbl">Run cost/yr</div>
+          <div class="scard-stat-val" id="sCost">£—</div>
+        </div>
+        <div class="scard-stat">
+          <div class="scard-stat-lbl">Business keeps</div>
+          <div class="scard-stat-val" id="sKeep">—p/£</div>
+        </div>
+        <div class="scard-stat">
+          <div class="scard-stat-lbl">Getting started</div>
+          <div class="scard-stat-val" id="sSunk">£—</div>
+        </div>
+      </div>
+      <div class="scard-sentence" id="sSentence">—</div>
+    </div>
+    <button class="copy-btn" id="copyBtn" onclick="copyBrief()">Copy to Clipboard</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let useVat = false;
+let D = {};
+
+// ── PREMIUM STATE (added by Femi) ──
+let isPremium = false;
+
+// ── SYNC SLIDERS ──
+function syncKeep() {
+  const v = +document.getElementById('iKeep').value;
+  document.getElementById('keepValDisplay').textContent = v + 'p';
+  const pct = v / 100;
+  document.getElementById('poundBarKeep').style.width = (pct * 100) + '%';
+  document.getElementById('poundBarKeep').textContent = 'keeps ' + v + 'p';
+  document.getElementById('poundBarCost').textContent = (100 - v) + 'p covers delivery costs';
+  // update SVG keep slice dynamically
+  updateCoinSlice(v);
+  calc();
+}
+
+function updateCoinSlice(keepPct) {
+  const angle = (keepPct / 100) * 360;
+  const rad = (angle - 90) * Math.PI / 180;
+  const r = 52;
+  const cx = 60, cy = 60;
+  const x = cx + r * Math.cos(rad);
+  const y = cy + r * Math.sin(rad);
+  const large = angle > 180 ? 1 : 0;
+  const d = `M${cx},${cy} L${cx},${cy - r} A${r},${r},0,${large},1,${x.toFixed(1)},${y.toFixed(1)} Z`;
+  const slice = document.getElementById('keepSlice');
+  if (slice) slice.setAttribute('d', d);
+}
+
+function syncHours() {
+  const v = document.getElementById('iHours').value;
+  document.getElementById('hoursDisplay').textContent = v + ' hrs/wk';
+  calc();
+}
+
+function toggleVat() {
+  useVat = !useVat;
+  document.getElementById('vatSwitch').classList.toggle('on', useVat);
+  calc();
+}
+
+function toggleSection(id) {
+  const section = document.getElementById(id + 'Section');
+  const btn = document.getElementById(id + 'Toggle');
+
+  // Check if trying to access premium features
+  if ((id === 'opp') && !isPremium) {
+    showPremiumModal();
+    return;
+  }
+
+  const isOpen = section.classList.contains('open');
+  section.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+// ── FORMAT ──
+function f(n, dp=0) {
+  if (!n && n !== 0) return '£—';
+  return '£' + Math.round(n).toLocaleString('en-GB');
+}
+function fk(n) {
+  if (!n && n !== 0) return '£—';
+  if (n >= 100000) return '£' + Math.round(n/1000) + 'k';
+  return f(n);
+}
+function fp(n) { return n + 'p'; }
+
+// ── CORE CALC ──
+function calc() {
+  const salary   = +document.getElementById('iSalary').value   || 0;
+  const benefits = +document.getElementById('iBenefits').value || 0;
+  const perks    = +document.getElementById('iPerks').value    || 0;
+  const fee      = +document.getElementById('iFee').value      || 0;
+  const onboard  = +document.getElementById('iOnboard').value  || 0;
+  const keepP    = +document.getElementById('iKeep').value     || 30;
+  const name     = document.getElementById('iName').value.trim() || '';
+  const vcDays   = +document.getElementById('vcDays').value    || 30;
+  const srRate   = +document.getElementById('iSrRate').value   || 100;
+  const hours    = +document.getElementById('iHours').value    || 12;
+
+  const margin   = keepP / 100;
+
+  // Recurring annual cost
+  let recurring  = salary + benefits + perks;
+  if (useVat) recurring *= 1.20;
+
+  // Sunk costs
+  const sunk = fee + onboard;
+  const year1 = recurring + sunk;
+
+  // Break-Even Bar
+  const hurdleAnn = recurring > 0 ? recurring / margin : 0;
+  const hurdleMo  = hurdleAnn / 12;
+
+  // Fee dilution
+  const fd12 = sunk > 0 ? sunk / 12  : 0;
+  const fd24 = sunk > 0 ? sunk / 24  : 0;
+  const fd36 = sunk > 0 ? sunk / 36  : 0;
+
+  // Vacancy cost — use hurdle daily rate as proxy for value of unfilled seat
+  const dailyCost = recurring > 0 ? (recurring / 365) : 0;
+  const vacancyCost = dailyCost * vcDays;
+
+  // Opp cost
+  const burnMo  = srRate * hours * 4.33;
+  const hireMo  = recurring / 12;
+  const saveMo  = burnMo - hireMo;
+
+  D = { name, salary, benefits, perks, recurring, sunk, year1,
+        margin, keepP, hurdleAnn, hurdleMo,
+        fd12, fd24, fd36, vacancyCost, vcDays, dailyCost,
+        srRate, hours, burnMo, hireMo, saveMo, fee, onboard };
+
+  render();
+}
+
+function render() {
+  const { name, recurring, sunk, keepP, margin,
+          hurdleAnn, hurdleMo, fd12, fd24, fd36,
+          vacancyCost, vcDays, dailyCost,
+          srRate, hours, burnMo, hireMo, saveMo } = D;
+
+  const displayName = name || 'the candidate';
+  const hasNumbers  = D.salary > 0;
+
+  // ── SENTENCE CHIPS ──
+  setChip('chipName',  name || null,  name ? name : 'the candidate');
+  setChip('chipMo',    hasNumbers ? fk(hurdleMo) : null, fk(hurdleMo));
+  setChip('chipCost',  hasNumbers ? f(recurring)  : null, f(recurring));
+  setChip('chipKeep',  keepP + 'p',   keepP + 'p');
+
+  const feeText = sunk > 0
+    ? ` The getting-started cost of ${f(sunk)} works out at just ${f(fd24)}/month over two years.`
+    : '';
+  document.getElementById('sentenceFee').textContent = feeText;
+
+  // ── VACANCY COUNTER (PREMIUM) ──
+  const vcEl = document.getElementById('vacancyCounter');
+  if (isPremium && hasNumbers) {
+    vcEl.style.display = 'flex';
+    document.getElementById('vcCost').textContent = f(vacancyCost);
+  } else {
+    vcEl.style.display = 'none';
+  }
+
+  // ── BEB HERO ──
+  flashNum('bebNum', hasNumbers ? fk(hurdleMo) : '£—');
+  document.getElementById('bebAnn').textContent = hasNumbers
+    ? f(Math.round(hurdleAnn)) + ' per year'
+    : '£— per year';
+
+  document.getElementById('bebBecause').textContent = hasNumbers
+    ? `Because the business keeps ${keepP}p of every £1 of revenue, the ${f(recurring)} annual run cost needs ${f(Math.round(hurdleAnn))} in revenue to cover it. (${f(recurring)} ÷ ${keepP}% = ${f(Math.round(hurdleAnn))})`
+    : 'Enter a salary above to see the bar.';
+
+  // ── BARS ──
+  if (hasNumbers) {
+    const costPct = Math.min(100, (recurring/12) / hurdleMo * 100);
+    document.getElementById('barCost').style.width = costPct + '%';
+    document.getElementById('barRev').style.width  = '100%';
+  } else {
+    document.getElementById('barCost').style.width = '0%';
+    document.getElementById('barRev').style.width  = '0%';
+  }
+  document.getElementById('barCostVal').textContent = hasNumbers ? f(recurring/12) + '/mo' : '£—';
+  document.getElementById('barRevVal').textContent  = hasNumbers ? fk(hurdleMo) + '/mo'  : '£—';
+
+  document.getElementById('bebGapNote').innerHTML = hasNumbers
+    ? `The monthly run cost is <span class="chip">${f(recurring/12)}</span>. To collect that much from <span class="chip">${keepP}p</span> kept per pound, you need <span class="chip">${fk(hurdleMo)}</span> in total monthly revenue — because only ${keepP}p of every pound counts toward the cost. That is why the bar is higher than the cost.`
+    : 'Enter a salary above to see the explanation.';
+
+  // ── FEE DILUTION ──
+  const fdWrap = document.getElementById('fdWrap');
+  if (sunk > 0) {
+    fdWrap.style.display = 'block';
+    document.getElementById('fd12').style.width = '100%';
+    document.getElementById('fd24').style.width = (fd24/fd12*100) + '%';
+    document.getElementById('fd36').style.width = (fd36/fd12*100) + '%';
+    document.getElementById('fdv12').textContent = f(fd12) + '/mo';
+    document.getElementById('fdv24').textContent = f(fd24) + '/mo';
+    document.getElementById('fdv36').textContent = f(fd36) + '/mo';
+    document.getElementById('fdNote').textContent =
+      `At 12 months the getting-started cost is ${f(fd12)}/month of employment. By 36 months it is just ${f(fd36)}/month. The longer they stay, the better the decision looks.`;
+  } else {
+    fdWrap.style.display = 'none';
+  }
+
+  // ── OPP COST (PREMIUM) ──
+  if (isPremium) {
+    document.getElementById('bleedMo').textContent  = f(burnMo);
+    document.getElementById('oppBurn').textContent  = fk(burnMo);
+    document.getElementById('oppBurnDesc').textContent = `${hours} hrs/wk at £${srRate}/hr`;
+    document.getElementById('oppHire').textContent  = fk(hireMo);
+
+    const oppEl = document.getElementById('oppResult');
+    if (burnMo > 0 && hireMo > 0) {
+      if (saveMo > 0) {
+        oppEl.innerHTML = `Hiring stops ${f(saveMo)}/month of bleed — that's ${fk(saveMo*12)}/year recovered.`;
+        oppEl.className = 'opp-result pos';
+      } else {
+        oppEl.innerHTML = `The hire costs more than the bleed it stops. Review the hours or scope.`;
+        oppEl.className = 'opp-result neg';
+      }
+    }
+  }
+
+  // ── CLOSE BAR ──
+  document.getElementById('closeBar').textContent = hasNumbers ? fk(hurdleMo) + '/month' : 'that number';
+
+  // ── SHARE MODAL SYNC ──
+  document.getElementById('sRole').textContent = name || 'Role Analysis';
+  document.getElementById('sHurdleMo').textContent = hasNumbers ? fk(hurdleMo) : '£—';
+  document.getElementById('sHurdleAnn').textContent = hasNumbers ? f(Math.round(hurdleAnn)) + ' per year' : '£— per year';
+  document.getElementById('sCost').textContent  = hasNumbers ? f(D.recurring) : '£—';
+  document.getElementById('sKeep').textContent  = keepP + 'p/£';
+  document.getElementById('sSunk').textContent  = sunk > 0 ? f(sunk) : 'None';
+
+  const shareS = hasNumbers
+    ? `${displayName} needs to generate ${fk(hurdleMo)}/month to cover a ${f(D.recurring)}/year run cost at ${keepP}p kept per pound of revenue.${sunk > 0 ? ' Getting-started cost of ' + f(sunk) + ' dilutes to ' + f(fd24) + '/month over 2 years.' : ''}`
+    : 'Enter salary and keep % to generate the analysis.';
+  document.getElementById('sSentence').innerHTML = shareS;
+}
+
+function setChip(id, hasValue, displayVal) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (hasValue !== null && hasValue !== false && displayVal !== '£—') {
+    el.textContent = displayVal;
+    el.classList.remove('empty');
+  } else {
+    el.textContent = id === 'chipName' ? 'the candidate' : displayVal;
+    el.classList.toggle('empty', displayVal === '£—' || displayVal === '—p');
+  }
+}
+
+function flashNum(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('flash');
+  setTimeout(() => { el.textContent = val; el.classList.remove('flash'); }, 180);
+}
+
+// ── MODAL ──
+function openModal()  { document.getElementById('modalOverlay').classList.add('show'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function closeModalOut(e) { if (e.target.id === 'modalOverlay') closeModal(); }
+
+function copyBrief() {
+  const { name, recurring, sunk, keepP, hurdleAnn, hurdleMo, fd12, fd24, fd36 } = D;
+  const n = name || 'This hire';
+  const text =
+`BREAK-EVEN ANALYSIS — ${n}
+${'─'.repeat(38)}
+
+MONTHLY BREAK-EVEN BAR: ${fk(hurdleMo)}
+ANNUAL:                  ${f(Math.round(hurdleAnn))}
+
+HOW IT WORKS:
+The business keeps ${keepP}p of every £1 of revenue.
+Run cost of ${f(recurring)}/year ÷ ${keepP}% = ${f(Math.round(hurdleAnn))} needed.
+
+RUN COST / YEAR: ${f(recurring)}
+GETTING STARTED: ${sunk > 0 ? f(sunk) : 'None entered'}
+${sunk > 0 ? 'AT 24 MONTHS:    ' + f(fd24) + '/month\n' : ''}
+THE CLOSE:
+"Is ${fk(hurdleMo)}/month a realistic bar for this person to clear?"
+
+─────────────────────────
+SpentIQ · ValueIQ · spentiq.com`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2200);
+  });
+}
+
+function resetAll() {
+  document.getElementById('iName').value    = '';
+  document.getElementById('iSalary').value  = '';
+  document.getElementById('iBenefits').value= 8250;
+  document.getElementById('iPerks').value   = 0;
+  document.getElementById('iFee').value     = 0;
+  document.getElementById('iOnboard').value = 0;
+  document.getElementById('iKeep').value    = 30;
+  document.getElementById('vcDays').value   = 30;
+  if (useVat) toggleVat();
+  syncKeep();
+}
+
+// ── PREMIUM MODAL (added by Femi) ──
+function showPremiumModal() {
+  document.getElementById('premiumOverlay').classList.add('show');
+}
+
+function closePremiumModal() {
+  document.getElementById('premiumOverlay').classList.remove('show');
+}
+
+function closePremiumModalOut(e) {
+  if (e.target.id === 'premiumOverlay') closePremiumModal();
+}
+
+function handlePurchase() {
+  // This would integrate with Stripe
+  alert('Stripe integration coming soon! For now, unlock Pro for free while we build the payment system.');
+  isPremium = true;
+  document.getElementById('premiumBanner').style.display = 'none';
+  document.getElementById('unlockBtn').textContent = '✓ Unlocked';
+  document.getElementById('oppToggle').innerHTML = '<span>Show empty seat bleed — opportunity cost of keeping this role open</span><span class="arrow">▼</span>';
+  closePremiumModal();
+  calc(); // Re-render to show premium features
+}
+
+// init
+setTimeout(() => { syncKeep(); calc(); }, 80);
+</script>
+</body>
+</html>
