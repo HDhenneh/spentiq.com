@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>True Hourly Rate · SpentIQ</title>
+<meta name="description" content="Delivery and gig work: what do you really earn an hour after fuel, wear and tear, tax and National Insurance? Free, no sign-up, nothing leaves your phone.">
+<meta property="og:title" content="What do you really earn an hour?">
+<meta property="og:description" content="The apps say one number. After fuel, tax and NI it's another. Find yours in 30 seconds.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* SpentIQ narrow app #1. Analytix tokens (paper/ink/spark). Maths lives in /engine/spentiq.js; rates in /data/. */
+:root {
+  --paper: #F7F3EC; --paper-2: #EFE9DE; --paper-3: #E4DBC8; --line: #DCD2BF;
+  --ink: #2C2418; --ink-light: #7A6E5A; --ink-deep: #1A1510;
+  --spark: #1A6B4A; --spark-2: #0D4A32; --spark-bg: #EBF7F2;
+  --warn: #9A4A14; --warn-bg: #F6E6D6;
+  --bar-apps: #B9AC95; --bar-wage: #7A6E5A;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14110C; --paper-2: #1C1812; --paper-3: #2A2419; --line: #3A3224;
+    --ink: #E7DFD0; --ink-light: #A39781; --ink-deep: #F7F3EC;
+    --spark: #45C28A; --spark-2: #8FE0B9; --spark-bg: #10271D;
+    --warn: #E3995B; --warn-bg: #2D1E11; --bar-apps: #5A5041; --bar-wage: #A39781;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14110C; --paper-2: #1C1812; --paper-3: #2A2419; --line: #3A3224;
+  --ink: #E7DFD0; --ink-light: #A39781; --ink-deep: #F7F3EC;
+  --spark: #45C28A; --spark-2: #8FE0B9; --spark-bg: #10271D;
+  --warn: #E3995B; --warn-bg: #2D1E11; --bar-apps: #5A5041; --bar-wage: #A39781;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.6; padding-inline: 18px; padding-block: 20px 64px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; color: var(--ink-deep); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 62ch; }
+a { color: var(--spark); }
+.label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-light); }
+.small { font-size: 12px; color: var(--ink-light); }
+
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.brand { font-family: var(--font-display); font-size: 24px; text-decoration: none; color: var(--ink-deep); }
+.brand i { color: var(--spark); }
+.pill { font-size: 11px; color: var(--spark); background: var(--spark-bg); border: 1px solid color-mix(in srgb, var(--spark) 30%, transparent); padding: 3px 10px; border-radius: 999px; }
+
+header { display: grid; gap: 10px; }
+header h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.05; }
+header h1 em { color: var(--spark); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+
+/* Inputs */
+.inputs { background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 14px; }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 12px; color: var(--ink); }
+.field small { color: var(--ink-light); font-size: 11px; }
+.money { position: relative; }
+.money::before { content: "£"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-light); }
+.money input { padding-left: 26px; }
+input, select { font: inherit; font-size: 16px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; }
+input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--spark) 45%, transparent); outline-offset: 1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg label { flex: 1 1 auto; text-align: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: pointer; font-size: 12px; background: var(--paper); }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg label:has(input:checked) { border-color: var(--spark); color: var(--spark); background: var(--spark-bg); }
+details.more { border-top: 1px dashed var(--line); padding-top: 10px; }
+details.more summary { cursor: pointer; font-size: 12px; color: var(--ink-light); }
+details.more .field { margin-top: 12px; }
+
+/* Answer */
+.answer { display: grid; gap: 18px; }
+.headline { background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 6px; }
+.big { font-family: var(--font-display); font-size: clamp(48px, 9vw, 76px); line-height: 1; color: var(--spark); }
+.big.below { color: var(--warn); }
+.sentence { font-size: 15px; color: var(--ink); }
+
+/* The picture: three bars on one scale */
+.bars { display: grid; gap: 10px; margin-top: 8px; }
+.bar { display: grid; grid-template-columns: 9.5em 1fr auto; gap: 10px; align-items: center; font-size: 12px; }
+.bar .track { height: 18px; background: var(--paper-3); border-radius: 6px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 6px; transition: width .25s ease; }
+.bar b { font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: right; }
+.f-apps { background: var(--bar-apps); } .f-wage { background: var(--bar-wage); } .f-true { background: var(--spark); } .f-true.below { background: var(--warn); }
+
+/* Layer 2: the receipt */
+.receipt { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; background: var(--paper); }
+.receipt h3 { font-size: 22px; margin-bottom: 6px; }
+.line { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.line span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+.line small { grid-column: 1 / -1; color: var(--ink-light); font-size: 11px; }
+.line.total { border-bottom: 0; border-top: 2px solid var(--ink); margin-top: 4px; font-weight: 600; }
+.line.total span:last-child { color: var(--spark); }
+.setaside { margin-top: 10px; background: var(--warn-bg); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+.setaside b { color: var(--warn); }
+
+/* Layer 3: the rules */
+details.layer { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--paper); }
+details.layer summary { cursor: pointer; font-family: var(--font-display); font-size: 20px; color: var(--ink-deep); }
+details.layer ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; cursor: pointer; border-radius: 999px; padding: 10px 18px; border: 1px solid var(--spark); background: var(--spark); color: var(--paper); }
+button.ghost { background: transparent; color: var(--spark); }
+.trust { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-light); border-top: 1px solid var(--line); padding-top: 14px; }
+.err { color: var(--warn); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <a class="brand" href="/">Spent<i>iq</i></a>
+    <span class="pill">For delivery &amp; gig workers</span>
+  </nav>
+
+  <header>
+    <span class="label">True Hourly Rate</span>
+    <h1>What do you <em>really</em> earn an hour?</h1>
+    <p>The apps show what they paid you. This shows what you keep after fuel, wear and tear, tax and National Insurance. Use one typical week.</p>
+  </header>
+
+  <div class="grid">
+    <form class="inputs" id="f" novalidate>
+      <label class="field"><span>The apps paid me this week (including tips)</span><div class="money"><input id="earnings" type="number" inputmode="decimal" min="0" step="1" value="600"></div><small>Add up every app you work for.</small></label>
+      <label class="field"><span>Hours logged in</span><input id="hours" type="number" inputmode="decimal" min="0" step="0.5" value="45"><small>Include the waiting between jobs. It's still your time.</small></label>
+      <div class="field"><span>I travel by</span>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="vehicle" value="car" checked>Car or van</label>
+          <label><input type="radio" name="vehicle" value="motorcycle">Motorbike</label>
+          <label><input type="radio" name="vehicle" value="bicycle">Bike</label>
+          <label><input type="radio" name="vehicle" value="none">On foot</label>
+        </div>
+      </div>
+      <label class="field" id="milesField"><span>Miles this week</span><input id="miles" type="number" inputmode="decimal" min="0" step="1" value="250"></label>
+      <label class="field"><span>Other costs this week</span><div class="money"><input id="other" type="number" inputmode="decimal" min="0" step="1" value="10"></div><small>Phone, bag, parking, insurance top-ups. Not fuel.</small></label>
+      <details class="more">
+        <summary>Fine-tune (optional)</summary>
+        <div class="field"><span>Count my vehicle costs as</span>
+          <div class="seg">
+            <label><input type="radio" name="method" value="mileage" checked>HMRC mileage rate</label>
+            <label><input type="radio" name="method" value="actual">Just my fuel</label>
+          </div>
+        </div>
+        <label class="field" id="fuelField" hidden><span>Fuel this week</span><div class="money"><input id="fuel" type="number" inputmode="decimal" min="0" step="1" value="45"></div></label>
+        <div class="row2">
+          <label class="field"><span>Weeks a year like this</span><input id="weeks" type="number" inputmode="numeric" min="1" max="52" step="1" value="48"></label>
+          <label class="field"><span>Pay from a job (per year)</span><div class="money"><input id="job" type="number" inputmode="decimal" min="0" step="100" value="0"></div></label>
+        </div>
+      </details>
+    </form>
+
+    <section class="answer" aria-live="polite">
+      <div class="headline">
+        <span class="label">You really earn</span>
+        <div class="big" id="big">–</div>
+        <p class="sentence" id="sentence"></p>
+        <div class="bars" id="bars" aria-hidden="true"></div>
+      </div>
+
+      <div class="receipt" id="receipt"></div>
+
+      <details class="layer"><summary>What we assumed</summary><ul id="assumptions"></ul></details>
+      <details class="layer"><summary>The rules we used</summary><ul id="rules"></ul></details>
+
+      <div class="actions">
+        <button type="button" id="save">Save to my tax log</button>
+        <span class="small" id="saved"></span>
+      </div>
+      <p class="err" id="err" hidden></p>
+    </section>
+  </div>
+
+  <footer class="trust">
+    <span>Free · no sign-up</span>
+    <span>Nothing leaves your phone</span>
+    <span id="year">UK rates</span>
+    <span>Guidance, not tax advice</span>
+  </footer>
+</div>
+
+<script src="/engine/spentiq.js"></script>
+<script>
+let R = null;
+const $ = (id) => document.getElementById(id);
+const num = (id) => parseFloat($(id).value) || 0;
+const radio = (n) => document.querySelector(`input[name="${n}"]:checked`).value;
+const pounds = (n) => (n < 0 ? "−£" : "£") + Math.round(Math.abs(n)).toLocaleString("en-GB");
+const perHour = (n) => n == null ? "–" : "£" + n.toFixed(2);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function input() {
+  return { earnings: num("earnings"), hours: num("hours"), miles: num("miles"), vehicle: radio("vehicle"),
+    costMethod: radio("method"), fuel: num("fuel"), otherCosts: num("other"), weeksPerYear: Math.min(52, Math.max(1, num("weeks") || 48)), otherIncome: num("job") };
+}
+
+function render() {
+  if (!R) return;
+  const v = radio("vehicle");
+  $("milesField").hidden = v === "none";
+  $("fuelField").hidden = radio("method") !== "actual" || v === "none";
+  const res = SpentIQ.trueHourly(input(), R);
+  const { apps, true: tru, livingWage } = res.perHour;
+  const below = tru != null && tru < livingWage;
+
+  $("big").textContent = perHour(tru) + (tru != null ? " an hour" : "");
+  $("big").classList.toggle("below", below);
+  $("sentence").textContent = tru == null ? "Enter the hours you were logged in." :
+    `The apps make it look like ${perHour(apps)} an hour. After costs and tax you keep ${perHour(tru)}, ` +
+    (below ? `which is below the £${livingWage.toFixed(2)} minimum an employer would have to pay.` : `which is above the £${livingWage.toFixed(2)} National Living Wage.`);
+
+  const max = Math.max(apps || 0, livingWage, tru || 0, 1);
+  const bar = (label, val, cls) => `<div class="bar"><span>${label}</span><div class="track"><div class="fill ${cls}" style="width:${Math.max(0, (val || 0) / max * 100)}%"></div></div><b>${perHour(val)}</b></div>`;
+  $("bars").innerHTML = bar("The apps say", apps, "f-apps") + bar("Living Wage", livingWage, "f-wage") + bar("You keep", tru, "f-true" + (below ? " below" : ""));
+
+  $("receipt").innerHTML = `<h3>How we got there</h3>` + res.steps.map((s) =>
+    `<div class="line${s.total ? " total" : ""}"><span>${esc(s.label)}</span><span>${pounds(s.amount)}</span>${s.note ? `<small>${esc(s.note)}</small>` : ""}</div>`).join("") +
+    (res.steps.filter((s) => !s.total).reduce((a, s) => a + Math.round(s.amount), 0) !== Math.round(res.week.keep)
+      ? `<small class="small">Lines are rounded to whole pounds, so they may be £1 out from the total.</small>` : "") +
+    `<div class="setaside">Put aside <b>${pounds(res.week.setAside)} a week</b> for your tax bill (about ${pounds(res.year.tax + res.year.ni)} a year).</div>`;
+
+  $("assumptions").innerHTML = res.assumptions.map((a) => `<li>${esc(a)}</li>`).join("");
+  $("rules").innerHTML = [
+    `Tax-free personal allowance £${R.incomeTax.personalAllowance.toLocaleString()}, then 20%, 40% and 45%. <a href="${R.incomeTax.source}" target="_blank" rel="noopener">GOV.UK</a>`,
+    `Self-employed National Insurance: ${R.class4NI.mainRate * 100}% on profits from £${R.class4NI.lowerProfitsLimit.toLocaleString()} to £${R.class4NI.upperProfitsLimit.toLocaleString()}, ${R.class4NI.upperRate * 100}% above. <a href="${R.class4NI.source}" target="_blank" rel="noopener">GOV.UK</a>`,
+    `Mileage: 45p a mile for a car or van (25p after 10,000), 24p for a motorbike, 20p for a bike. <a href="${R.mileage.source}" target="_blank" rel="noopener">GOV.UK</a>`,
+    `National Living Wage £${R.nationalLivingWage.hourly.toFixed(2)} an hour (21 and over) from April 2026. <a href="${R.nationalLivingWage.source}" target="_blank" rel="noopener">GOV.UK</a>`,
+    `Rates for ${R.taxYear}, checked ${R.checked}. Scotland's income tax bands differ.`,
+  ].map((t) => `<li>${t}</li>`).join("");
+  window.__last = res;
+}
+
+$("f").addEventListener("input", render);
+$("f").addEventListener("change", render);
+
+$("save").addEventListener("click", () => {
+  try {
+    const log = JSON.parse(localStorage.getItem("spentiq.taxlog") || "[]");
+    const r = window.__last;
+    log.push({ app: "true-hourly", saved: new Date().toISOString().slice(0, 10), taxYear: r.taxYear, week: r.week, perHour: r.perHour.true });
+    localStorage.setItem("spentiq.taxlog", JSON.stringify(log));
+    $("saved").textContent = `Saved on this device. ${log.length} entr${log.length === 1 ? "y" : "ies"} in your log.`;
+  } catch { $("saved").textContent = "Couldn't save here (private browsing?). Nothing was lost."; }
+});
+
+fetch("/data/uk-rates-2026-27.json")
+  .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((d) => { R = d; $("year").textContent = `UK ${d.taxYear} rates`; render(); })
+  .catch(() => { const e = $("err"); e.hidden = false; e.textContent = "Couldn't load the tax rates. Refresh to try again."; });
+</script>
+</body>
+</html>

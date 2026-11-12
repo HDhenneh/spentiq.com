@@ -1,0 +1,34 @@
+{
+  "about": "UK tax and pay rates used by every SpentIQ calculator. One file per tax year; update each April. England, Wales and Northern Ireland (Scottish income tax bands differ).",
+  "taxYear": "2026/27",
+  "checked": "2026-11-12",
+  "incomeTax": {
+    "personalAllowance": 12570,
+    "taperThreshold": 100000,
+    "bands": [
+      { "name": "basic", "rate": 0.20, "width": 37700 },
+      { "name": "higher", "rate": 0.40, "upTo": 125140 },
+      { "name": "additional", "rate": 0.45 }
+    ],
+    "source": "https://www.gov.uk/income-tax-rates"
+  },
+  "class4NI": { "lowerProfitsLimit": 12570, "upperProfitsLimit": 50270, "mainRate": 0.06, "upperRate": 0.02, "source": "https://www.gov.uk/self-employed-national-insurance-rates" },
+  "class2NI": { "note": "Not payable by most self-employed people since 6 April 2024 (voluntary only)." },
+  "employeeNI": { "primaryThreshold": 12570, "upperEarningsLimit": 50270, "mainRate": 0.08, "upperRate": 0.02 },
+  "employerNI": { "secondaryThreshold": 5000, "rate": 0.15, "source": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027" },
+  "mileage": {
+    "carOrVan": { "first10000": 0.45, "after": 0.25 },
+    "motorcycle": 0.24,
+    "bicycle": 0.20,
+    "source": "https://www.gov.uk/simpler-income-tax-simplified-expenses/vehicles-"
+  },
+  "nationalLivingWage": { "hourly": 12.71, "age": "21 and over", "from": "2026-04-01", "source": "https://www.gov.uk/national-minimum-wage-rates" },
+  "vat": { "standard": 0.20, "reduced": 0.05, "registrationThreshold": 90000 },
+  "tradingAllowance": 1000,
+  "paymentsOnAccount": { "billThreshold": 1000, "note": "Two advance payments, each half of last year's bill, due 31 January and 31 July." },
+  "mtdIncomeTax": [
+    { "from": "2026-04-06", "qualifyingIncomeOver": 50000 },
+    { "from": "2027-04-06", "qualifyingIncomeOver": 30000 },
+    { "from": "2028-04-06", "qualifyingIncomeOver": 20000 }
+  ]
+}
