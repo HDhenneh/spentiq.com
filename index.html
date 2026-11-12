@@ -1349,7 +1349,7 @@
           <div class="calc-widget">
             <div class="cw-header">
               <div class="cw-title">Contractor Margin</div>
-              <div class="cw-uk-badge">UK · 2024/25</div>
+              <div class="cw-uk-badge">UK · 2026/27</div>
             </div>
             <div class="cw-body">
               <div class="cw-row">
@@ -1386,7 +1386,7 @@
               </div>
               <div class="cw-divider"></div>
               <div class="cw-field">
-                <div class="cw-label">Include Employer NI? (13.8% above £9,100)</div>
+                <div class="cw-label">Include Employer NI? (15% above £5,000)</div>
                 <select class="cw-select" id="m-eni" onchange="calcMargin()">
                   <option value="no">No — show gross margin</option>
                   <option value="yes">Yes — deduct Employer NI</option>
@@ -1395,7 +1395,7 @@
             </div>
             <div class="cw-results" id="margin-results"></div>
             <div class="cw-footer">
-              <span class="cw-note">Based on UK 2024/25 NI thresholds</span>
+              <span class="cw-note">Based on UK 2026/27 NI thresholds</span>
             </div>
           </div>
         </div>
@@ -1431,7 +1431,7 @@
             <span class="formula-var">margin_pct</span> <span class="formula-op">=</span> (margin_day / charge_rate) × 100<br>
             <br>
             <span class="formula-comment">// Employer NI (if applicable)</span><br>
-            <span class="formula-var">eni</span> <span class="formula-op">=</span> MAX(0, (pay_rate × days - 175) × 0.138)<br>
+            <span class="formula-var">eni</span> <span class="formula-op">=</span> MAX(0, (pay_rate × days - 96.15) × 0.15)<br>
             <span class="formula-var">net_margin</span> <span class="formula-op">=</span> margin_day <span class="formula-op">-</span> (eni / days)
           </div>
         </div>
@@ -1538,7 +1538,7 @@
           <div class="calc-widget">
             <div class="cw-header">
               <div class="cw-title">Salary ↔ Day Rate</div>
-              <div class="cw-uk-badge">UK 2024/25</div>
+              <div class="cw-uk-badge">UK 2026/27</div>
             </div>
             <div class="cw-body">
               <div class="cw-field">
@@ -1734,7 +1734,7 @@
           <div class="calc-widget">
             <div class="cw-header">
               <div class="cw-title">Umbrella Take-Home</div>
-              <div class="cw-uk-badge">2024/25 Tax Year</div>
+              <div class="cw-uk-badge">2026/27 Tax Year</div>
             </div>
             <div class="cw-body">
               <div class="cw-field">
@@ -1763,7 +1763,7 @@
               <div class="cw-field">
                 <div class="cw-label">Tax Code</div>
                 <select class="cw-select" id="umb-tax" onchange="calcUmbrella()">
-                  <option value="1257L" selected>1257L (Standard 2024/25)</option>
+                  <option value="1257L" selected>1257L (Standard 2026/27)</option>
                   <option value="BR">BR (Basic Rate — no allowance)</option>
                   <option value="D0">D0 (Higher Rate — no allowance)</option>
                 </select>
@@ -1778,7 +1778,7 @@
         <div class="calc-panel-right reveal">
           <div class="section-eyebrow" style="margin-bottom:24px">Umbrella deductions explained</div>
           <div class="how-it-works">
-            <div class="hiw-step"><div class="hiw-num">1</div><div class="hiw-content"><h4>Employer NI first</h4><p>The umbrella deducts Employer NI (13.8%) from the assignment rate before the contractor sees a penny.</p></div></div>
+            <div class="hiw-step"><div class="hiw-num">1</div><div class="hiw-content"><h4>Employer NI first</h4><p>The umbrella deducts Employer NI (15% above £5,000 a year) from the assignment rate before the contractor sees a penny.</p></div></div>
             <div class="hiw-step"><div class="hiw-num">2</div><div class="hiw-content"><h4>Umbrella margin</h4><p>Usually £15–30/week. Some companies hide this — transparency here builds trust with your contractors.</p></div></div>
             <div class="hiw-step"><div class="hiw-num">3</div><div class="hiw-content"><h4>Then PAYE deductions</h4><p>Income Tax and Employee NI apply to whatever's left. The result is the contractor's actual take-home.</p></div></div>
           </div>
@@ -1884,15 +1884,21 @@
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">Spent<em>iq</em></div>
-    <div class="footer-note">Visual calculators for professionals · UK 2024/25</div>
+    <div class="footer-note">Visual calculators for professionals · UK 2026/27</div>
   </div>
   <div class="footer-disclaimer">
-    Spentiq calculators are provided for guidance only. All figures are estimates based on current UK tax rates and thresholds for 2024/25.
+    Spentiq calculators are provided for guidance only. All figures are estimates based on current UK tax rates and thresholds for 2026/27 (England, Wales and Northern Ireland; Scottish income tax bands differ). Rates checked 12 November 2026.
     They do not constitute financial, tax or legal advice. Always verify calculations against HMRC guidance or consult a qualified professional.
   </div>
 </footer>
 
 <script>
+// UK payroll rates, tax year 2026/27 (England, Wales, NI). Update every April; checked 2026-11-12.
+const RATES = {
+  taxYear: '2026/27',
+  eniRate: 0.15,                 // Employer NI (from 6 April 2025)
+  eniThresholdWeekly: 5000 / 52, // secondary threshold £5,000/yr ≈ £96.15/wk
+};
 // ══════════════════════════════════════════════
 // HERO CALCULATOR — Contractor Margin
 // ══════════════════════════════════════════════
@@ -1944,9 +1950,9 @@ function calcMargin() {
   const grossTotal = grossWeek * weeks;
   const grossPct   = charge > 0 ? (grossDay / charge * 100) : 0;
 
-  // Employer NI: 13.8% of weekly pay above £175/wk threshold
+  // Employer NI: 15% of weekly pay above the secondary threshold (see RATES)
   const weeklyPay = pay * days;
-  const eniWeekly = eni ? Math.max(0, (weeklyPay - 175) * 0.138) : 0;
+  const eniWeekly = eni ? Math.max(0, (weeklyPay - RATES.eniThresholdWeekly) * RATES.eniRate) : 0;
   const eniDay    = days > 0 ? eniWeekly / days : 0;
   const netDay    = grossDay - eniDay;
   const netWeek   = netDay * days;
@@ -2190,8 +2196,8 @@ function calcUmbrella() {
 
   const weeklyRate = rate * days;
 
-  // Employer NI (13.8% above £175/wk)
-  const eniWeekly = Math.max(0, (weeklyRate - 175) * 0.138);
+  // Employer NI (15% above the secondary threshold, see RATES)
+  const eniWeekly = Math.max(0, (weeklyRate - RATES.eniThresholdWeekly) * RATES.eniRate);
 
   // Gross after ENI and umbrella fee
   const taxableWeekly = weeklyRate - eniWeekly - umbMargin;
