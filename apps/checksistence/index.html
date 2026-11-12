@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
-<title>Checksistence · SpentIQ</title>
-<meta name="description" content="What's the minimum buy-in to play the game of life? Build your daily cost of existing: what you've spent before you spend a penny. Free, no sign-up, nothing leaves your device.">
+<title>How much of your pay goes on just living? · Checksistence · SpentIQ</title>
+<meta name="description" content="What's the minimum buy-in to play the game of life? Build your daily cost of existing: what you've spent before you spend a penny. Free, no sign-up, nothing you type leaves your device.">
 <meta property="og:title" content="What's the minimum buy-in to play the game of life?">
 <meta property="og:description" content="Your day doesn't start at zero. Find your number.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -166,13 +166,14 @@ details.layer ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px
 
   <footer class="trust">
     <span>Free · no sign-up</span>
-    <span>Nothing leaves your device</span>
+    <span>Nothing you type leaves your device</span>
     <span>Every number is yours to change</span>
     <span><a href="/apps/true-hourly/">Paid by the hour or the drop? Find your True Hourly Rate →</a></span>
   </footer>
 </div>
 
 <script src="/engine/spentiq.js"></script>
+<script src="/assets/track.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -207,6 +208,7 @@ function render() {
   const res = SpentIQ.checksistence({ items, takeHomeMonthly: +$("takeHome").value || 0, hoursPerWeek: +$("hours").value || 0, hourly: hourlyOverride });
   const d = res.perDay;
   $("big").innerHTML = `${money(d.baseline)}<small> a day</small>`;
+  if (d.baseline > 0) spentiqTrack("checksistence/result");
   $("sentence").textContent = d.baseline > 0
     ? `That's what it costs you to open your eyes each morning, about ${money(res.perMonth.baseline, 0)} a month, before you spend anything else today.`
     : "Add the costs you can't avoid, or try the example.";
@@ -256,7 +258,7 @@ $("takeHome").addEventListener("input", render);
 $("hours").addEventListener("input", render);
 $("save").addEventListener("click", () => {
   try { localStorage.setItem("spentiq.baseline", JSON.stringify({ items, takeHome: $("takeHome").value, hours: $("hours").value, saved: new Date().toISOString().slice(0, 10) }));
-    $("saved").textContent = "Saved in this browser. Change it any time."; }
+    $("saved").textContent = "Saved in this browser. Change it any time."; spentiqTrack("checksistence/save"); }
   catch { $("saved").textContent = "Couldn't save here (private browsing?)."; }
 });
 
@@ -268,6 +270,7 @@ try {
   const th = log.filter((e) => e.app === "true-hourly").pop();
   if (th && th.perHour) { trueHourly = th.perHour; $("thHint").textContent = `Leave take-home blank to use your saved True Hourly Rate (${money(th.perHour)} an hour).`; }
 } catch {}
+document.querySelectorAll("details.layer").forEach((d) => d.addEventListener("toggle", () => d.open && spentiqTrack("checksistence/method")));
 drawRows(); render();
 </script>
 </body>

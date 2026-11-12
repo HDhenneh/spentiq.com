@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <title>True Hourly Rate · SpentIQ</title>
-<meta name="description" content="Delivery and gig work: what do you really earn an hour after fuel, wear and tear, tax and National Insurance? Free, no sign-up, nothing leaves your phone.">
+<meta name="description" content="Delivery and gig work: what do you really earn an hour after fuel, wear and tear, tax and National Insurance? Free, no sign-up, nothing you type leaves your phone.">
 <meta property="og:title" content="What do you really earn an hour?">
 <meta property="og:description" content="The apps say one number. After fuel, tax and NI it's another. Find yours in 30 seconds.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -179,13 +179,14 @@ button.ghost { background: transparent; color: var(--spark); }
 
   <footer class="trust">
     <span>Free · no sign-up</span>
-    <span>Nothing leaves your phone</span>
+    <span>Nothing you type leaves your phone</span>
     <span id="year">UK rates</span>
     <span>Guidance, not tax advice</span>
   </footer>
 </div>
 
 <script src="/engine/spentiq.js"></script>
+<script src="/assets/track.js"></script>
 <script>
 let R = null;
 const $ = (id) => document.getElementById(id);
@@ -234,8 +235,10 @@ function render() {
     `Rates for ${R.taxYear}, checked ${R.checked}. Scotland's income tax bands differ.`,
   ].map((t) => `<li>${t}</li>`).join("");
   window.__last = res;
+  if (tru != null) spentiqTrack("true-hourly/result");
 }
 
+document.querySelectorAll("details.layer").forEach((d) => d.addEventListener("toggle", () => d.open && spentiqTrack("true-hourly/method")));
 $("f").addEventListener("input", render);
 $("f").addEventListener("change", render);
 
@@ -246,6 +249,7 @@ $("save").addEventListener("click", () => {
     log.push({ app: "true-hourly", saved: new Date().toISOString().slice(0, 10), taxYear: r.taxYear, week: r.week, perHour: r.perHour.true });
     localStorage.setItem("spentiq.taxlog", JSON.stringify(log));
     $("saved").textContent = `Saved on this device. ${log.length} entr${log.length === 1 ? "y" : "ies"} in your log.`;
+    spentiqTrack("true-hourly/save");
   } catch { $("saved").textContent = "Couldn't save here (private browsing?). Nothing was lost."; }
 });
 
