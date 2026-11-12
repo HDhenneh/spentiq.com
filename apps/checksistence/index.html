@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>Checksistence · SpentIQ</title>
+<meta name="description" content="What's the minimum buy-in to play the game of life? Build your daily cost of existing: what you've spent before you spend a penny. Free, no sign-up, nothing leaves your device.">
+<meta property="og:title" content="What's the minimum buy-in to play the game of life?">
+<meta property="og:description" content="Your day doesn't start at zero. Find your number.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* SpentIQ flagship: Checksistence. Analytix tokens. Maths in /engine/spentiq.js (checksistence). */
+:root {
+  --paper: #F7F3EC; --paper-2: #EFE9DE; --paper-3: #E4DBC8; --line: #DCD2BF;
+  --ink: #2C2418; --ink-light: #7A6E5A; --ink-deep: #1A1510;
+  --spark: #1A6B4A; --spark-2: #0D4A32; --spark-bg: #EBF7F2;
+  --warn: #9A4A14; --warn-bg: #F6E6D6;
+  --hard: #2C2418; --soft: #9A7B4F;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14110C; --paper-2: #1C1812; --paper-3: #2A2419; --line: #3A3224;
+    --ink: #E7DFD0; --ink-light: #A39781; --ink-deep: #F7F3EC;
+    --spark: #45C28A; --spark-2: #8FE0B9; --spark-bg: #10271D;
+    --warn: #E3995B; --warn-bg: #2D1E11; --hard: #E7DFD0; --soft: #C4A274;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14110C; --paper-2: #1C1812; --paper-3: #2A2419; --line: #3A3224;
+  --ink: #E7DFD0; --ink-light: #A39781; --ink-deep: #F7F3EC;
+  --spark: #45C28A; --spark-2: #8FE0B9; --spark-bg: #10271D;
+  --warn: #E3995B; --warn-bg: #2D1E11; --hard: #E7DFD0; --soft: #C4A274;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.6; padding-inline: 18px; padding-block: 20px 64px; }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; color: var(--ink-deep); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 62ch; }
+a { color: var(--spark); }
+.label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-light); }
+.small { font-size: 12px; color: var(--ink-light); }
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.brand { font-family: var(--font-display); font-size: 24px; text-decoration: none; color: var(--ink-deep); }
+.brand i { color: var(--spark); }
+.pill { font-size: 11px; color: var(--spark); background: var(--spark-bg); border: 1px solid color-mix(in srgb, var(--spark) 30%, transparent); padding: 3px 10px; border-radius: 999px; }
+header { display: grid; gap: 10px; }
+header h1 { font-size: clamp(32px, 5.6vw, 54px); line-height: 1.06; }
+header h1 em { color: var(--spark); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+/* Builder */
+.builder { background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+.builder h2 { font-size: 24px; }
+.rows { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(5.5em, .8fr) auto auto auto; gap: 6px; align-items: center; }
+.row.excluded { opacity: .55; }
+input, select { font: inherit; font-size: 15px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; width: 100%; min-width: 0; }
+select { width: auto; font-size: 12px; padding: 8px 6px; }
+input:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--spark) 45%, transparent); outline-offset: 1px; }
+.money { position: relative; min-width: 0; }
+.money::before { content: "£"; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--ink-light); font-size: 13px; }
+.money input { padding-left: 21px; }
+.x { border: 0; background: transparent; color: var(--ink-light); font-size: 18px; cursor: pointer; padding: 4px 6px; }
+.x:hover { color: var(--warn); }
+@media (max-width: 560px) {
+  .row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+  .row .nm { grid-column: 1 / -1; }
+}
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+button.b { font: inherit; font-size: 13px; cursor: pointer; border-radius: 999px; padding: 8px 14px; border: 1px solid var(--spark); background: var(--spark); color: var(--paper); }
+button.g { background: transparent; color: var(--spark); }
+.income { border-top: 1px dashed var(--line); padding-top: 12px; display: grid; gap: 8px; }
+.income .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: grid; gap: 4px; font-size: 12px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--ink-light); }
+.legend b { color: var(--ink); font-weight: 500; }
+
+/* Answer */
+.answer { display: grid; gap: 16px; }
+.headline { background: var(--paper-2); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 8px; }
+.big { font-family: var(--font-display); font-size: clamp(48px, 9vw, 78px); line-height: 1; color: var(--ink-deep); }
+.big small { font-size: .38em; color: var(--ink-light); }
+.sentence { font-size: 15px; }
+.hours { font-family: var(--font-display); font-size: 26px; color: var(--spark); line-height: 1.2; }
+.hours.heavy { color: var(--warn); }
+.stack { display: flex; height: 22px; border-radius: 7px; overflow: hidden; background: var(--paper-3); margin-top: 6px; }
+.stack div { height: 100%; transition: width .25s ease; }
+.s-hard { background: var(--hard); } .s-soft { background: var(--soft); } .s-left { background: var(--spark); }
+.stack-key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--ink-light); }
+.stack-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.receipt { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 2px; background: var(--paper); }
+.receipt h3 { font-size: 22px; margin-bottom: 6px; }
+.line { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.line span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+.line small { grid-column: 1 / -1; color: var(--ink-light); font-size: 11px; }
+.line.sub { color: var(--ink-light); }
+.line.total { border-bottom: 0; border-top: 2px solid var(--ink); margin-top: 4px; font-weight: 600; }
+details.layer { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--paper); }
+details.layer summary { cursor: pointer; font-family: var(--font-display); font-size: 20px; color: var(--ink-deep); }
+details.layer ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; }
+.trust { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-light); border-top: 1px solid var(--line); padding-top: 14px; }
+.empty { color: var(--ink-light); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <a class="brand" href="/">Spent<i>iq</i></a>
+    <span class="pill">Checksistence</span>
+  </nav>
+
+  <header>
+    <span class="label">Your day doesn't start at zero</span>
+    <h1>What's the minimum buy-in to play <em>the game of life?</em></h1>
+    <p>Before you spend a penny today, you've already spent something just by waking up. Add the costs you can't avoid and see your number. You decide what counts.</p>
+  </header>
+
+  <div class="grid">
+    <section class="builder" aria-label="Your costs">
+      <h2>What it costs to wake up</h2>
+      <div class="legend"><span><b>Must pay</b>: a cost that's there whatever you do</span><span><b>My minimum</b>: one you choose to count</span><span><b>Leave out</b>: ignore it</span></div>
+      <div class="rows" id="rows"></div>
+      <div class="btns">
+        <button type="button" class="b g" id="add">+ Add a cost</button>
+        <button type="button" class="b g" id="example">Try an example</button>
+        <button type="button" class="b g" id="clear">Clear</button>
+      </div>
+      <div class="income">
+        <span class="label">Optional: what you earn</span>
+        <div class="two">
+          <label class="field">Take-home pay a month<div class="money"><input id="takeHome" type="number" inputmode="decimal" min="0" step="10" placeholder="0"></div></label>
+          <label class="field">Hours you work a week<input id="hours" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"></label>
+        </div>
+        <span class="small" id="thHint"></span>
+      </div>
+      <div class="btns"><button type="button" class="b" id="save">Save my number on this device</button><span class="small" id="saved"></span></div>
+    </section>
+
+    <section class="answer" aria-live="polite">
+      <div class="headline">
+        <span class="label">Your cost of existing</span>
+        <div class="big" id="big">£0<small> a day</small></div>
+        <p class="sentence" id="sentence"></p>
+        <div class="hours" id="hoursLine" hidden></div>
+        <div id="stackWrap" hidden>
+          <div class="stack" id="stack"></div>
+          <div class="stack-key"><span><i class="s-hard"></i>Must pay</span><span><i class="s-soft"></i>My minimum</span><span><i class="s-left"></i>Left for the life you want</span></div>
+        </div>
+      </div>
+      <div class="receipt" id="receipt"></div>
+      <details class="layer"><summary>What we assumed</summary><ul id="assumptions"></ul></details>
+      <details class="layer"><summary>How the number works</summary><ul>
+        <li>Every cost is turned into a daily amount: monthly × 12 ÷ 365, weekly × 52 ÷ 365, yearly ÷ 365.</li>
+        <li>Your number = everything marked "must pay" + everything marked "my minimum". "Leave out" lines don't count.</li>
+        <li>Hours to exist = your number ÷ what you take home per hour of work.</li>
+        <li>Nothing you type leaves this device. "Save" keeps it in this browser only.</li>
+      </ul></details>
+    </section>
+  </div>
+
+  <footer class="trust">
+    <span>Free · no sign-up</span>
+    <span>Nothing leaves your device</span>
+    <span>Every number is yours to change</span>
+    <span><a href="/apps/true-hourly/">Paid by the hour or the drop? Find your True Hourly Rate →</a></span>
+  </footer>
+</div>
+
+<script src="/engine/spentiq.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const money = (n, dp = 2) => "£" + (n || 0).toLocaleString("en-GB", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+const KIND = { hard: "Must pay", soft: "My minimum", excluded: "Leave out" };
+const PERIOD = { month: "a month", week: "a week", year: "a year", day: "a day" };
+const STARTER = [["Rent or mortgage", "hard"], ["Council tax", "hard"], ["Energy", "hard"], ["Water", "hard"], ["Phone and internet", "hard"],
+  ["Insurance", "hard"], ["Minimum debt payments", "hard"], ["Basic food", "soft"], ["Getting to work", "soft"]].map(([name, kind]) => ({ name, amount: "", period: "month", kind }));
+const EXAMPLE = { takeHome: 2400, hours: 37.5, items: [
+  { name: "Rent", amount: 1200, period: "month", kind: "hard" }, { name: "Council tax", amount: 150, period: "month", kind: "hard" },
+  { name: "Energy", amount: 120, period: "month", kind: "hard" }, { name: "Water", amount: 35, period: "month", kind: "hard" },
+  { name: "Phone and internet", amount: 40, period: "month", kind: "hard" }, { name: "Contents insurance", amount: 12, period: "month", kind: "hard" },
+  { name: "Minimum debt payments", amount: 100, period: "month", kind: "hard" }, { name: "Basic food", amount: 60, period: "week", kind: "soft" },
+  { name: "Travelcard", amount: 45, period: "week", kind: "soft" }, { name: "Gym", amount: 35, period: "month", kind: "excluded" } ] };
+
+let items = STARTER.map((x) => ({ ...x }));
+let trueHourly = null;
+
+function rowHtml(it, i) {
+  const opt = (map, val) => Object.entries(map).map(([k, v]) => `<option value="${k}"${k === val ? " selected" : ""}>${v}</option>`).join("");
+  return `<div class="row ${it.kind === "excluded" ? "excluded" : ""}" data-i="${i}">
+    <input class="nm" aria-label="Cost name" value="${esc(it.name)}" data-f="name">
+    <div class="money"><input aria-label="Amount" type="number" inputmode="decimal" min="0" step="1" value="${esc(it.amount)}" placeholder="0" data-f="amount"></div>
+    <select aria-label="How often" data-f="period">${opt(PERIOD, it.period)}</select>
+    <select aria-label="Does it count" data-f="kind">${opt(KIND, it.kind)}</select>
+    <button type="button" class="x" aria-label="Remove ${esc(it.name)}" data-rm>×</button></div>`;
+}
+function drawRows() { $("rows").innerHTML = items.map(rowHtml).join(""); }
+
+function render() {
+  const hourlyOverride = !$("takeHome").value && trueHourly ? trueHourly : null;
+  const res = SpentIQ.checksistence({ items, takeHomeMonthly: +$("takeHome").value || 0, hoursPerWeek: +$("hours").value || 0, hourly: hourlyOverride });
+  const d = res.perDay;
+  $("big").innerHTML = `${money(d.baseline)}<small> a day</small>`;
+  $("sentence").textContent = d.baseline > 0
+    ? `That's what it costs you to open your eyes each morning, about ${money(res.perMonth.baseline, 0)} a month, before you spend anything else today.`
+    : "Add the costs you can't avoid, or try the example.";
+
+  const hl = $("hoursLine");
+  if (res.hoursToExist != null && d.baseline > 0) {
+    const h = res.hoursToExist, hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    hl.hidden = false;
+    hl.classList.toggle("heavy", res.shareOfIncome != null && res.shareOfIncome >= 0.8);
+    hl.textContent = `You work ${hh} hour${hh === 1 ? "" : "s"}${mm ? ` ${mm} minutes` : ""} a day just to exist.`;
+  } else hl.hidden = true;
+
+  const sw = $("stackWrap");
+  if (d.takeHome) {
+    sw.hidden = false;
+    const tot = Math.max(d.takeHome, d.baseline);
+    const w = (x) => `${Math.max(0, x) / tot * 100}%`;
+    $("stack").innerHTML = `<div class="s-hard" style="width:${w(d.hard)}"></div><div class="s-soft" style="width:${w(d.soft)}"></div><div class="s-left" style="width:${w(d.left)}"></div>`;
+  } else sw.hidden = true;
+
+  const counted = res.items.filter((i) => i.kind !== "excluded" && i.amount > 0);
+  $("receipt").innerHTML = `<h3>Your number, line by line</h3>` + (counted.length ? counted.map((i) =>
+    `<div class="line"><span>${esc(i.name)}</span><span>${money(i.daily)}</span><small>${money(i.amount, i.amount % 1 ? 2 : 0)} ${PERIOD[i.period]} · ${KIND[i.kind]}</small></div>`).join("") +
+    `<div class="line sub"><span>Must pay</span><span>${money(d.hard)}</span></div><div class="line sub"><span>My minimum</span><span>${money(d.soft)}</span></div>` +
+    `<div class="line total"><span>Cost of existing, per day</span><span>${money(d.baseline)}</span></div>` +
+    (d.takeHome ? `<div class="line"><span>You take home per day</span><span>${money(d.takeHome)}</span></div><div class="line total"><span>Left for the life you want</span><span>${money(d.left)}</span></div>` : "")
+    : `<p class="empty">Nothing counted yet.</p>`);
+  $("assumptions").innerHTML = res.assumptions.map((a) => `<li>${esc(a)}</li>`).join("") +
+    (hourlyOverride ? `<li>Your hourly figure came from your saved True Hourly Rate (${money(trueHourly)} an hour).</li>` : "");
+}
+
+$("rows").addEventListener("input", (e) => {
+  const row = e.target.closest(".row"); if (!row) return;
+  const it = items[+row.dataset.i], f = e.target.dataset.f;
+  if (f) it[f] = e.target.value;
+  if (f === "kind") row.classList.toggle("excluded", it.kind === "excluded");
+  render();
+});
+$("rows").addEventListener("click", (e) => {
+  if (!e.target.matches("[data-rm]")) return;
+  items.splice(+e.target.closest(".row").dataset.i, 1); drawRows(); render();
+});
+$("add").addEventListener("click", () => { items.push({ name: "", amount: "", period: "month", kind: "hard" }); drawRows(); $("rows").lastElementChild.querySelector("input").focus(); render(); });
+$("example").addEventListener("click", () => { items = EXAMPLE.items.map((x) => ({ ...x })); $("takeHome").value = EXAMPLE.takeHome; $("hours").value = EXAMPLE.hours; drawRows(); render(); });
+$("clear").addEventListener("click", () => { items = STARTER.map((x) => ({ ...x })); $("takeHome").value = ""; $("hours").value = ""; drawRows(); render(); });
+$("takeHome").addEventListener("input", render);
+$("hours").addEventListener("input", render);
+$("save").addEventListener("click", () => {
+  try { localStorage.setItem("spentiq.baseline", JSON.stringify({ items, takeHome: $("takeHome").value, hours: $("hours").value, saved: new Date().toISOString().slice(0, 10) }));
+    $("saved").textContent = "Saved in this browser. Change it any time."; }
+  catch { $("saved").textContent = "Couldn't save here (private browsing?)."; }
+});
+
+// Load a saved baseline, and offer the True Hourly Rate if one was saved.
+try {
+  const saved = JSON.parse(localStorage.getItem("spentiq.baseline") || "null");
+  if (saved && Array.isArray(saved.items)) { items = saved.items; $("takeHome").value = saved.takeHome || ""; $("hours").value = saved.hours || ""; $("saved").textContent = `Loaded your number from ${saved.saved}.`; }
+  const log = JSON.parse(localStorage.getItem("spentiq.taxlog") || "[]");
+  const th = log.filter((e) => e.app === "true-hourly").pop();
+  if (th && th.perHour) { trueHourly = th.perHour; $("thHint").textContent = `Leave take-home blank to use your saved True Hourly Rate (${money(th.perHour)} an hour).`; }
+} catch {}
+drawRows(); render();
+</script>
+</body>
+</html>

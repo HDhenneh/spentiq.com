@@ -126,5 +126,45 @@
     };
   }
 
-  return { VERSION, personalAllowance, incomeTax, taxOnTop, class4NI, mileageAllowance, trueHourly };
+
+  // ---------- Checksistence: the cost of existing, per day ----------
+  /*
+   * input:
+   *   items           [{ name, amount, period: "day"|"week"|"month"|"year", kind: "hard"|"soft"|"excluded" }]
+   *                   The user decides every line. "hard" = a true sunk cost; "soft" = a minimum they choose to count.
+   *   takeHomeMonthly what reaches your bank each month (optional)
+   *   hoursPerWeek    hours you work a week (optional, with takeHomeMonthly)
+   *   hourly          or an hourly take-home figure directly, e.g. from True Hourly Rate (optional)
+   * Days: a year is 365 days, so £1,200 a month is £1,200 × 12 ÷ 365 = £39.45 a day.
+   */
+  const PER_YEAR = { day: 365, week: 52, month: 12, year: 1 };
+  function checksistence(input) {
+    const items = (input.items || []).map((it) => {
+      const amount = Math.max(0, +it.amount || 0), per = PER_YEAR[it.period] || 12;
+      return { name: it.name || "Unnamed", kind: it.kind || "hard", period: it.period || "month", amount, daily: amount * per / 365 };
+    });
+    const sum = (k) => items.filter((i) => i.kind === k).reduce((a, i) => a + i.daily, 0);
+    const hard = sum("hard"), soft = sum("soft"), baseline = hard + soft;
+    const takeHome = +input.takeHomeMonthly || 0, hours = +input.hoursPerWeek || 0;
+    const dailyTakeHome = takeHome ? takeHome * 12 / 365 : null;
+    const hourly = +input.hourly || (takeHome && hours ? takeHome * 12 / (hours * 52) : null);
+    return {
+      version: VERSION,
+      perDay: { hard: r2(hard), soft: r2(soft), baseline: r2(baseline), takeHome: dailyTakeHome == null ? null : r2(dailyTakeHome),
+        left: dailyTakeHome == null ? null : r2(dailyTakeHome - baseline) },
+      perMonth: { baseline: r2(baseline * 365 / 12) },
+      hourly: hourly == null ? null : r2(hourly),
+      hoursToExist: hourly ? r2(baseline / hourly) : null,
+      shareOfIncome: dailyTakeHome ? r2(baseline / dailyTakeHome) : null,
+      items: items.map((i) => ({ ...i, daily: r2(i.daily) })),
+      assumptions: [
+        "You decide what counts. Nothing here is a recommendation.",
+        "Costs are spread evenly across a 365-day year, so a monthly bill becomes the same amount every day.",
+        hourly && !input.hourly ? `Your hourly figure is your monthly take-home spread over ${hours} hours a week, every week of the year.` : null,
+        "Money you save or invest isn't a cost of existing, so leave it out unless you want to count it.",
+      ].filter(Boolean),
+    };
+  }
+
+  return { VERSION, personalAllowance, incomeTax, taxOnTop, class4NI, mileageAllowance, trueHourly, checksistence };
 });

@@ -49,5 +49,25 @@ eq("on foot: no vehicle cost", f.year.costs, 480);
 eq("on foot: kept per week", f.week.keep, 507.5);
 eq("on foot: receipt adds up", f.steps.filter((s) => !s.total).reduce((a, s) => a + s.amount, 0), f.week.keep);
 
+// Checksistence: London renter. Daily = amount × per-year ÷ 365.
+// hard: rent 1,200/mo 39.452 + council tax 150/mo 4.932 + energy 120/mo 3.945 + phone 40/mo 1.315 + insurance 25/mo 0.822
+//       + minimum debt 100/mo 3.288 = 53.753; soft: food 60/wk 8.548; excluded: gym (ignored)
+// baseline 62.301/day; take-home 2,400/mo = 78.904/day; hourly 28,800 ÷ (37.5 × 52) = 14.769; hours = 4.22; share 79%
+const x = S.checksistence({ takeHomeMonthly: 2400, hoursPerWeek: 37.5, items: [
+  { name: "Rent", amount: 1200, period: "month", kind: "hard" }, { name: "Council tax", amount: 150, period: "month", kind: "hard" },
+  { name: "Energy", amount: 120, period: "month", kind: "hard" }, { name: "Phone", amount: 40, period: "month", kind: "hard" },
+  { name: "Insurance", amount: 25, period: "month", kind: "hard" }, { name: "Minimum debt", amount: 100, period: "month", kind: "hard" },
+  { name: "Basic food", amount: 60, period: "week", kind: "soft" }, { name: "Gym", amount: 35, period: "month", kind: "excluded" } ] });
+eq("checksistence: rent per day", x.items[0].daily, 39.45);
+eq("checksistence: hard per day", x.perDay.hard, 53.75);
+eq("checksistence: soft per day", x.perDay.soft, 8.55);
+eq("checksistence: baseline per day", x.perDay.baseline, 62.3);
+eq("checksistence: hourly take-home", x.hourly, 14.77);
+eq("checksistence: hours a day to exist", x.hoursToExist, 4.22);
+eq("checksistence: share of income", x.shareOfIncome, 0.79);
+eq("checksistence: left per day", x.perDay.left, 16.6);
+eq("checksistence: no income given → no hours", S.checksistence({ items: [{ amount: 365, period: "year" }] }).hoursToExist == null ? 1 : 0, 1);
+eq("checksistence: £365 a year = £1 a day", S.checksistence({ items: [{ amount: 365, period: "year" }] }).perDay.baseline, 1);
+
 console.log(fails ? `\n${fails} failed` : "\nAll engine tests pass");
 process.exit(fails ? 1 : 0);
