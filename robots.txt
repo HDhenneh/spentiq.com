@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /readswift-app/
+Disallow: /homepage-newsletter-mockup.html
+
+Sitemap: https://spentiq.com/sitemap.xml
